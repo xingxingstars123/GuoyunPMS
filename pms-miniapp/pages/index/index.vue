@@ -19,7 +19,7 @@
         <text class="status-value">{{ stats.roomStatus.preArrival }}</text>
       </view>
       <view class="status-item">
-        <text class="status-label">已抵</text>
+        <text class="status-label">已订</text>
         <text class="status-value">{{ stats.roomStatus.checkedIn }}</text>
       </view>
       <view class="status-item">
