@@ -15,7 +15,7 @@
     <!-- 房态统计条 -->
     <view class="room-status-bar">
       <view class="status-item">
-        <text class="status-label">预抵</text>
+        <text class="status-label">预订</text>
         <text class="status-value">{{ stats.roomStatus.preArrival }}</text>
       </view>
       <view class="status-item">

@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "scripts": {
     "dev:h5": "cross-env NODE_ENV=development UNI_PLATFORM=h5 vue-cli-service serve",
-    "build:h5": "cross-env NODE_ENV=production UNI_PLATFORM=h5 vue-cli-service build"
+    "build:h5": "cross-env NODE_ENV=production UNI_PLATFORM=h5 vue-cli-service build",
+    "dev:mp-weixin": "cross-env NODE_ENV=development UNI_PLATFORM=mp-weixin vue-cli-service uni-build --watch",
+    "build:mp-weixin": "cross-env NODE_ENV=production UNI_PLATFORM=mp-weixin vue-cli-service uni-build"
   },
   "dependencies": {
     "@dcloudio/uni-app": "^2.0.0",
     "@dcloudio/uni-h5": "^2.0.0",
+    "@dcloudio/uni-mp-weixin": "^2.0.0",
     "vue": "^2.6.14"
   },
   "devDependencies": {
