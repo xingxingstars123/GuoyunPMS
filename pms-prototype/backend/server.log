@@ -1,0 +1,12 @@
+✅ 默认数据插入完成
+✅ 数据库初始化完成
+
+🚀 PMS 后端服务已启动
+📡 API 地址: http://localhost:3100
+📊 数据库: SQLite (./database/pms.db)
+
+📢 通知 携程: 房间 1 状态变更为 booked
+📢 通知 美团: 房间 1 状态变更为 booked
+📢 通知 飞猪: 房间 1 状态变更为 booked
+📢 通知 Booking: 房间 1 状态变更为 booked
+📢 通知 直销: 房间 1 状态变更为 booked

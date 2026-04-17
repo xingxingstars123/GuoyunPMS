@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>国韵民宿管理系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(180deg, #4A90E2 0%, #F8F8F8 200px);
+      min-height: 100vh;
+      padding: 10px;
+      padding-bottom: 70px;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px;
+      color: white;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* 统计卡片 */
+    .stats-cards {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .stat-card {
+      flex: 1;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 20px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .stat-card.revenue {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-card.rooms {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* 房态统计条 */
+    .room-status {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-around;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .status-item {
+      text-align: center;
+    }
+
+    .status-label {
+      font-size: 12px;
+      color: #666;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .status-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #4A90E2;
+    }
+
+    /* 功能网格 */
+    .function-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .grid-item {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .grid-item:active {
+      transform: scale(0.95);
+      background: #f5f5f5;
+    }
+
+    .grid-icon {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .grid-label {
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* 底部导航 */
+    .tabbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      display: flex;
+      border-top: 1px solid #eee;
+      padding: 8px 0;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+    }
+
+    .tab-item {
+      flex: 1;
+      text-align: center;
+      padding: 5px;
+      cursor: pointer;
+    }
+
+    .tab-item.active {
+      color: #4A90E2;
+    }
+
+    .tab-icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .tab-label {
+      font-size: 12px;
+    }
+
+    /* 页面容器 */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* 订单列表 */
+    .order-item {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .order-no {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .order-status {
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      background: #f0f0f0;
+    }
+
+    .order-info {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .order-price {
+      font-size: 18px;
+      color: #FF4D4F;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 10px;
+    }
+
+    /* 加载动画 */
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(3, end) infinite;
+    }
+
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 首页 -->
+  <div id="page-home" class="page active">
+    <div class="header">
+      <h1>国韵民宿</h1>
+      <p>智能管理系统</p>
+    </div>
+
+    <div class="stats-cards">
+      <div class="stat-card revenue">
+        <div class="stat-label">当日营业额</div>
+        <div class="stat-value" id="revenue">加载中...</div>
+      </div>
+      <div class="stat-card rooms">
+        <div class="stat-label">可售（间）</div>
+        <div class="stat-value" id="available-rooms">-</div>
+      </div>
+    </div>
+
+    <div class="room-status">
+      <div class="status-item">
+        <span class="status-label">预抵</span>
+        <span class="status-value" id="pre-arrival">0</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">已抵</span>
+        <span class="status-value" id="checked-in">0</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">预离</span>
+        <span class="status-value" id="pre-departure">0</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">已离</span>
+        <span class="status-value" id="checked-out">0</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">新办</span>
+        <span class="status-value" id="pending">0</span>
+      </div>
+    </div>
+
+    <div class="function-grid">
+      <div class="grid-item" onclick="showPage('orders')">
+        <span class="grid-icon">📋</span>
+        <span class="grid-label">订单管理</span>
+      </div>
+      <div class="grid-item" onclick="showPage('customers')">
+        <span class="grid-icon">👥</span>
+        <span class="grid-label">客户列表</span>
+      </div>
+      <div class="grid-item" onclick="showPage('finance')">
+        <span class="grid-icon">📊</span>
+        <span class="grid-label">财务统计</span>
+      </div>
+      <div class="grid-item">
+        <span class="grid-icon">📅</span>
+        <span class="grid-label">房态日历</span>
+      </div>
+      <div class="grid-item">
+        <span class="grid-icon">🧹</span>
+        <span class="grid-label">清洁管理</span>
+      </div>
+      <div class="grid-item">
+        <span class="grid-icon">⚙️</span>
+        <span class="grid-label">系统设置</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 订单页 -->
+  <div id="page-orders" class="page">
+    <div class="header">
+      <h1>订单管理</h1>
+    </div>
+    <div id="order-list" class="loading">加载中</div>
+  </div>
+
+  <!-- 客户页 -->
+  <div id="page-customers" class="page">
+    <div class="header">
+      <h1>客户列表</h1>
+    </div>
+    <div id="customer-list" class="loading">加载中</div>
+  </div>
+
+  <!-- 财务页 -->
+  <div id="page-finance" class="page">
+    <div class="header">
+      <h1>财务统计</h1>
+    </div>
+    <div id="finance-data" class="loading">加载中</div>
+  </div>
+
+  <!-- 底部导航 -->
+  <div class="tabbar">
+    <div class="tab-item active" onclick="showPage('home')">
+      <span class="tab-icon">🏠</span>
+      <div class="tab-label">首页</div>
+    </div>
+    <div class="tab-item" onclick="showPage('orders')">
+      <span class="tab-icon">📋</span>
+      <div class="tab-label">订单</div>
+    </div>
+    <div class="tab-item" onclick="showPage('customers')">
+      <span class="tab-icon">👥</span>
+      <div class="tab-label">客户</div>
+    </div>
+    <div class="tab-item" onclick="showPage('finance')">
+      <span class="tab-icon">📊</span>
+      <div class="tab-label">财务</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://43.173.91.161:3100';
+
+    // 页面切换
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+      
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('.tab-item')[['home', 'orders', 'customers', 'finance'].indexOf(page)].classList.add('active');
+      
+      if (page === 'orders') loadOrders();
+      if (page === 'customers') loadCustomers();
+      if (page === 'finance') loadFinance();
+    }
+
+    // 加载首页数据
+    async function loadHome() {
+      try {
+        const res = await fetch(`${API_BASE}/api/dashboard/stats`);
+        const data = await res.json();
+        
+        document.getElementById('revenue').textContent = '¥ ' + data.revenue;
+        document.getElementById('available-rooms').textContent = data.availableRooms;
+        document.getElementById('pre-arrival').textContent = data.roomStatus.preArrival;
+        document.getElementById('checked-in').textContent = data.roomStatus.checkedIn;
+        document.getElementById('pre-departure').textContent = data.roomStatus.preDeparture;
+        document.getElementById('checked-out').textContent = data.roomStatus.checkedOut;
+        document.getElementById('pending').textContent = data.roomStatus.pending;
+      } catch (error) {
+        console.error('加载数据失败:', error);
+        document.getElementById('revenue').textContent = '加载失败';
+      }
+    }
+
+    // 加载订单
+    async function loadOrders() {
+      try {
+        const res = await fetch(`${API_BASE}/api/orders`);
+        const data = await res.json();
+        const orders = data.data;
+        
+        const channelMap = {
+          'ctrip': '携程',
+          'meituan': '美团',
+          'fliggy': '飞猪',
+          'booking': 'Booking',
+          'direct': '直销'
+        };
+        
+        const statusMap = {
+          'pending': '待确认',
+          'confirmed': '已确认',
+          'checked_in': '已入住',
+          'checked_out': '已退房'
+        };
+        
+        const html = orders.map(order => `
+          <div class="order-item">
+            <div class="order-header">
+              <span class="order-no">${order.order_no}</span>
+              <span class="order-status">${statusMap[order.status] || order.status}</span>
+            </div>
+            <div class="order-info">房间: ${order.room_number}</div>
+            <div class="order-info">客户: ${order.customer_name}</div>
+            <div class="order-info">入住: ${order.check_in} → ${order.check_out}</div>
+            <div class="order-info">渠道: ${channelMap[order.channel] || order.channel}</div>
+            <div class="order-price">¥${order.total_price}</div>
+          </div>
+        `).join('');
+        
+        document.getElementById('order-list').innerHTML = html || '<div class="loading">暂无订单</div>';
+      } catch (error) {
+        document.getElementById('order-list').innerHTML = '<div class="loading">加载失败</div>';
+      }
+    }
+
+    // 加载客户
+    async function loadCustomers() {
+      try {
+        const res = await fetch(`${API_BASE}/api/customers`);
+        const data = await res.json();
+        const customers = data.data.all;
+        
+        const channelMap = {
+          'ctrip': '携程',
+          'meituan': '美团',
+          'fliggy': '飞猪',
+          'booking': 'Booking',
+          'direct': '直销'
+        };
+        
+        const html = customers.map(customer => `
+          <div class="order-item">
+            <div class="order-header">
+              <span class="order-no">${customer.name}</span>
+              <span class="order-status">${channelMap[customer.channel]}</span>
+            </div>
+            <div class="order-info">电话: ${customer.phone ? customer.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') : '-'}</div>
+            <div class="order-info">订单数: ${customer.total_orders}</div>
+            <div class="order-price">累计消费: ¥${customer.total_spent}</div>
+          </div>
+        `).join('');
+        
+        document.getElementById('customer-list').innerHTML = html || '<div class="loading">暂无客户</div>';
+      } catch (error) {
+        document.getElementById('customer-list').innerHTML = '<div class="loading">加载失败</div>';
+      }
+    }
+
+    // 加载财务
+    async function loadFinance() {
+      try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        
+        const res = await fetch(`${API_BASE}/api/finance/monthly?year=${year}&month=${month}`);
+        const data = await res.json();
+        const finance = data.data;
+        
+        const channelMap = {
+          'ctrip': '携程',
+          'meituan': '美团',
+          'fliggy': '飞猪',
+          'booking': 'Booking',
+          'direct': '直销'
+        };
+        
+        let html = `
+          <div style="background: white; border-radius: 12px; padding: 20px; margin-bottom: 15px;">
+            <div style="font-size: 14px; color: #666; margin-bottom: 10px;">总收入</div>
+            <div style="font-size: 32px; font-weight: bold; color: #4A90E2;">¥${finance.totalRevenue}</div>
+          </div>
+        `;
+        
+        html += finance.channelStats.map(item => `
+          <div class="order-item">
+            <div class="order-header">
+              <span class="order-no">${channelMap[item.channel]}</span>
+              <span class="order-status">${item.order_count} 单</span>
+            </div>
+            <div class="order-price">¥${item.revenue}</div>
+          </div>
+        `).join('');
+        
+        document.getElementById('finance-data').innerHTML = html || '<div class="loading">暂无数据</div>';
+      } catch (error) {
+        document.getElementById('finance-data').innerHTML = '<div class="loading">加载失败</div>';
+      }
+    }
+
+    // 页面加载时初始化
+    loadHome();
+  </script>
+</body>
+</html>

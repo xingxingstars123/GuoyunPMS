@@ -1,0 +1,100 @@
+{"id":"F001","entity":"OpenClaw","relation":"身份","target":"AI助手","valid_from":"2026-04-16","ended":null,"source":"AGENTS.md","category":"事实"}
+{"id":"F002","entity":"OpenClaw","relation":"工作空间","target":"/root/.openclaw/workspace","valid_from":"2026-04-16","ended":null,"source":"AGENTS.md","category":"事实"}
+{"id":"F003","entity":"OpenClaw","relation":"记忆体系","target":"双系统架构","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F004","entity":"OpenClaw","relation":"掌握技能","target":"feishu-collaboration","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"技能"}
+{"id":"F005","entity":"OpenClaw","relation":"掌握技能","target":"web-tools-guide","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"技能"}
+{"id":"F006","entity":"OpenClaw","relation":"掌握技能","target":"memory-hygiene","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"技能"}
+{"id":"F007","entity":"OpenClaw","relation":"工作流程","target":"长内容处理规范","valid_from":"2026-04-16","ended":null,"source":"SOUL.md","category":"规则"}
+{"id":"F008","entity":"OpenClaw","relation":"工作流程","target":"飞书文档创建铁律","valid_from":"2026-04-16","ended":null,"source":"SOUL.md","category":"规则"}
+{"id":"F009","entity":"OpenClaw","relation":"已完成项目","target":"PMS智能公寓管理系统","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-15.md","category":"项目"}
+{"id":"F010","entity":"PMS智能公寓管理系统","relation":"包含","target":"Web版原型","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-15.md","category":"项目"}
+{"id":"F011","entity":"PMS智能公寓管理系统","relation":"包含","target":"H5移动版","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-15.md","category":"项目"}
+{"id":"F012","entity":"PMS智能公寓管理系统","relation":"包含","target":"uni-app小程序版","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-15.md","category":"项目"}
+{"id":"F013","entity":"记忆体系","relation":"架构","target":"四层结构","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F014","entity":"记忆体系","relation":"分类","target":"七分类法","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F015","entity":"记忆体系","relation":"包含","target":"L0摘要层","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F016","entity":"记忆体系","relation":"包含","target":"L1领域层","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F017","entity":"记忆体系","relation":"包含","target":"L2详情层","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F018","entity":"记忆体系","relation":"包含","target":"工具层","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F019","entity":"七分类法","relation":"包含","target":"事实","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F020","entity":"七分类法","relation":"包含","target":"偏好","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F021","entity":"七分类法","relation":"包含","target":"事件","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F022","entity":"七分类法","relation":"包含","target":"关系","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F023","entity":"七分类法","relation":"包含","target":"观点","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F024","entity":"七分类法","relation":"包含","target":"目标","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F025","entity":"七分类法","relation":"包含","target":"指令","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事实"}
+{"id":"F026","entity":"记忆维护","relation":"规则","target":"每次对话记录","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"规则"}
+{"id":"F027","entity":"记忆维护","relation":"规则","target":"每次文件变更更新索引","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"规则"}
+{"id":"F028","entity":"记忆维护","relation":"规则","target":"事实变更时保留历史轨迹","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"规则"}
+{"id":"F029","entity":"记忆维护","relation":"规则","target":"定期清理和提炼","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"规则"}
+{"id":"F030","entity":"记忆体系升级","relation":"状态","target":"进行中","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F031","entity":"记忆体系升级","relation":"包含","target":"重建INDEX.md","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F032","entity":"记忆体系升级","relation":"包含","target":"创建facts.jsonl","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F033","entity":"记忆体系升级","relation":"包含","target":"创建query-facts.sh","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F034","entity":"记忆体系升级","relation":"包含","target":"刷新MEMORY.md","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F035","entity":"记忆体系升级","relation":"包含","target":"更新AGENTS.md","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F036","entity":"用户","relation":"要求","target":"记忆体系升级","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-16.md","category":"指令"}
+{"id":"F037","entity":"用户","relation":"提供","target":"飞书文档链接","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-16.md","category":"事件"}
+{"id":"F038","entity":"文档访问","relation":"状态","target":"403错误","valid_from":"2026-04-16","ended":"2026-04-16","source":"memory/daily/2026-04-16.md","category":"事件"}
+{"id":"F039","entity":"文档访问","relation":"原因","target":"访问限制","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-16.md","category":"事实"}
+{"id":"F040","entity":"权限检查","relation":"执行","target":"feishu_app_scopes","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-16.md","category":"事件"}
+{"id":"F041","entity":"记忆体系升级","relation":"完成","target":"重建INDEX.md","valid_from":"2026-04-16","ended":null,"source":"memory/INDEX.md","category":"事件"}
+{"id":"F042","entity":"记忆体系升级","relation":"完成","target":"创建facts.jsonl","valid_from":"2026-04-16","ended":null,"source":"memory/knowledge/facts.jsonl","category":"事件"}
+{"id":"F043","entity":"记忆体系升级","relation":"完成","target":"创建query-facts.sh","valid_from":"2026-04-16","ended":null,"source":"memory/scripts/query-facts.sh","category":"事件"}
+{"id":"F044","entity":"记忆体系升级","relation":"完成","target":"刷新MEMORY.md","valid_from":"2026-04-16","ended":null,"source":"MEMORY.md","category":"事件"}
+{"id":"F045","entity":"记忆体系升级","relation":"包含","target":"更新AGENTS.md","valid_from":"2026-04-16","ended":null,"source":"《OpenClaw 记忆体系升级方案》","category":"事件"}
+{"id":"F046","entity":"用户","relation":"提供文档","target":"《老钟影分身记忆体系架构详解》","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F047","entity":"用户","relation":"提供文档","target":"《OpenClaw 记忆体系升级方案》","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F048","entity":"文档访问","relation":"状态","target":"已解决","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F049","entity":"权限检查","relation":"结果","target":"有docx:document:readonly权限","valid_from":"2026-04-16","ended":null,"source":"memory/daily/2026-04-16.md","category":"事实"}
+{"id":"F050","entity":"记忆维护","relation":"规则","target":"每日更新INDEX.md","valid_from":"2026-04-16","ended":null,"source":"memory/INDEX.md","category":"规则"}
+{"id":"F051","entity":"群聊行为","relation":"错误记录","target":"错误响应钟征@老钟助手并错误@老钟助手回复","valid_from":"2026-04-16","ended":"2026-04-16","source":"用户反馈","category":"事件"}
+{"id":"F052","entity":"群聊行为","relation":"正确规则","target":"只响应@我的信息，回复时@正确的发起人","valid_from":"2026-04-16","ended":null,"source":"用户指令","category":"规则"}
+{"id":"F053","entity":"身份关系","relation":"澄清","target":"钟洋是主要用户，钟征是叔叔有独立机器人","valid_from":"2026-04-16","ended":null,"source":"用户澄清","category":"关系"}
+{"id":"F054","entity":"三人群成员","relation":"包含","target":"钟征、爱华、钟洋","valid_from":"2026-04-16","ended":null,"source":"用户描述","category":"关系"}
+{"id":"F055","entity":"群聊响应","relation":"触发条件","target":"任何人明确@我时才响应","valid_from":"2026-04-16","ended":null,"source":"用户规则","category":"规则"}
+{"id":"F056","entity":"群聊响应","relation":"禁止行为","target":"不响应未@的聊天，不干涉钟征与其机器人交互","valid_from":"2026-04-16","ended":null,"source":"用户规则","category":"规则"}
+{"id":"F057","entity":"回复目标","relation":"正确做法","target":"回复时@消息的原始发送者，不是@消息中提到的其他人","valid_from":"2026-04-16","ended":null,"source":"错误纠正","category":"规则"}
+{"id":"F058","entity":"老钟助手","relation":"身份","target":"钟征的机器人，不是我的身份","valid_from":"2026-04-16","ended":null,"source":"用户澄清","category":"事实"}
+{"id":"F059","entity":"我的身份","relation":"明确","target":"钟洋的专属助理","valid_from":"2026-04-16","ended":null,"source":"用户确认","category":"事实"}
+{"id":"F060","entity":"错误纠正","relation":"状态","target":"已记录并更新记忆文档","valid_from":"2026-04-16","ended":null,"source":"当前操作","category":"事件"}
+{"id":"F051","entity":"用户","relation":"要求","target":"创建飞书文档备案系统","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"指令"}
+{"id":"F052","entity":"OpenClaw","relation":"创建文档","target":"老钟助理文件清单","valid_from":"2026-04-16","ended":"2026-04-16","source":"当前对话","category":"事件"}
+{"id":"F053","entity":"老钟助理文件清单","relation":"文档链接","target":"https://feishu.cn/docx/ZgLpdpH3kolyq6xSVJKcv5HGnZb","valid_from":"2026-04-16","ended":"2026-04-16","source":"当前对话","category":"事实"}
+{"id":"F054","entity":"老钟助理文件清单","relation":"创建时间","target":"2026-04-16 22:50","valid_from":"2026-04-16","ended":"2026-04-16","source":"当前对话","category":"事实"}
+{"id":"F055","entity":"老钟助理文件清单","relation":"文档说明","target":"飞书文档备案系统","valid_from":"2026-04-16","ended":"2026-04-16","source":"当前对话","category":"事实"}
+{"id":"F056","entity":"老钟助理文件清单","relation":"维护规则","target":"每次创建新文档后必须添加记录","valid_from":"2026-04-16","ended":"2026-04-16","source":"当前对话","category":"规则"}
+{"id":"F057","entity":"老钟助理文件清单","relation":"当前状态","target":"活跃中","valid_from":"2026-04-16","ended":"2026-04-16","source":"当前对话","category":"事实"}
+{"id":"F058","entity":"飞书文档创建","relation":"铁律","target":"三步法：create → write → read验证","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F059","entity":"飞书文档创建","relation":"禁止","target":"在create action中传入content参数","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F060","entity":"飞书文档创建","relation":"验证标准","target":"blocks_added > 0 且 block_count > 1","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F061","entity":"用户","relation":"要求","target":"文档重命名：老钟助理文件清单 → 星星的文件清单","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"指令"}
+{"id":"F062","entity":"OpenClaw","relation":"重命名文档","target":"老钟助理文件清单 → 星星的文件清单","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F063","entity":"星星的文件清单","relation":"原名","target":"老钟助理文件清单","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F064","entity":"星星的文件清单","relation":"文档链接","target":"https://feishu.cn/docx/ZgLpdpH3kolyq6xSVJKcv5HGnZb","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F065","entity":"星星的文件清单","relation":"创建时间","target":"2026-04-16 22:50","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F066","entity":"星星的文件清单","relation":"重命名时间","target":"2026-04-16 22:58","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F067","entity":"星星的文件清单","relation":"文档说明","target":"飞书文档备案系统","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F068","entity":"星星的文件清单","relation":"维护规则","target":"每次创建新文档后必须添加记录","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F069","entity":"星星的文件清单","relation":"当前状态","target":"活跃中","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F070","entity":"飞书文档更新","relation":"方法","target":"write操作更新全部内容","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F071","entity":"飞书文档更新","relation":"验证标准","target":"blocks_deleted > 0 且 blocks_added > 0","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F072","entity":"文档版本管理","relation":"规则","target":"重大变更创建新版本","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F073","entity":"用户","relation":"提供参考文档","target":"老钟影分身的文档","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F074","entity":"用户","relation":"要求","target":"简化文档内容，参考老钟影分身的文档风格","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"指令"}
+{"id":"F075","entity":"OpenClaw","relation":"简化文档","target":"星星的文件清单","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F076","entity":"星星的文件清单","relation":"简化时间","target":"2026-04-16 23:02","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F077","entity":"星星的文件清单","relation":"参考文档","target":"老钟影分身的文档","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F078","entity":"星星的文件清单","relation":"文档风格","target":"简洁时间线排列","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F079","entity":"星星的文件清单","relation":"简化前blocks","target":"87","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F080","entity":"星星的文件清单","relation":"简化后blocks","target":"4","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F081","entity":"文档简化","relation":"原则","target":"简洁优先，用户导向","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"规则"}
+{"id":"F082","entity":"用户","relation":"要求","target":"用一堂五步法分析家族排序工作坊业务","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"指令"}
+{"id":"F083","entity":"OpenClaw","relation":"执行分析","target":"家族排序工作坊业务分析","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事件"}
+{"id":"F084","entity":"家族排序工作坊业务分析","relation":"分析方法","target":"一堂五步法","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F085","entity":"家族排序工作坊业务分析","relation":"文档链接","target":"https://feishu.cn/docx/RwnFdBZ2ZoseFkxTWcscERj6nqh","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F086","entity":"家族排序工作坊业务分析","relation":"文档大小","target":"474 blocks","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F087","entity":"家族排序工作坊","relation":"市场规模","target":"TAM 1900亿元，SAM 8亿元，SOM 1亿元","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F088","entity":"家族排序工作坊","relation":"核心产品","target":"2-3天线下工作坊，15-30人小班制","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F089","entity":"家族排序工作坊","relation":"客单价","target":"3000-8000元/人","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}
+{"id":"F090","entity":"家族排序工作坊","relation":"年度盈利预测","target":"72万元净利润，37.5%净利率","valid_from":"2026-04-16","ended":null,"source":"当前对话","category":"事实"}

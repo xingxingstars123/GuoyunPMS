@@ -1,0 +1,164 @@
+/**
+ * 增强版主题配置 - Glassmorphism + 国风配色
+ */
+
+// ============ 核心配色 (国韵风格) ============
+
+// 主色(国风青色)
+$primary-color: #2C7A7B;
+$primary-light: #4FD1C5;
+$primary-dark: #1A5657;
+
+// 国风渐变色
+$primary-gradient: linear-gradient(135deg, #2C7A7B 0%, #4FD1C5 100%);
+$warm-gradient: linear-gradient(135deg, #D97706 0%, #FBBF24 100%);
+$cool-gradient: linear-gradient(135deg, #4C51BF 0%, #667EEA 100%);
+$sunset-gradient: linear-gradient(135deg, #ED64A6 0%, #F687B3 100%);
+
+// 背景色
+$bg-primary: #F7FAFC;
+$bg-secondary: #EDF2F7;
+$bg-tertiary: #E2E8F0;
+$bg-glass: rgba(255, 255, 255, 0.7); // Glassmorphism基础
+
+// 文字色
+$text-primary: #1A202C;
+$text-secondary: #4A5568;
+$text-tertiary: #A0AEC0;
+$text-white: #FFFFFF;
+
+// 边框色
+$border-light: #E2E8F0;
+$border-medium: #CBD5E0;
+$border-dark: #A0AEC0;
+
+// 状态色
+$success: #48BB78;
+$warning: #ED8936;
+$error: #F56565;
+$info: #4299E1;
+
+$success-light: #C6F6D5;
+$warning-light: #FEEBC8;
+$error-light: #FED7D7;
+$info-light: #BEE3F8;
+
+// ============ 尺寸系统 ============
+
+// 间距
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 48rpx;
+$spacing-2xl: 64rpx;
+
+// 圆角
+$radius-sm: 8rpx;
+$radius-md: 12rpx;
+$radius-lg: 16rpx;
+$radius-xl: 24rpx;
+$radius-full: 9999rpx;
+
+// 字体大小
+$font-xs: 24rpx;
+$font-sm: 26rpx;
+$font-md: 28rpx;
+$font-lg: 32rpx;
+$font-xl: 36rpx;
+$font-2xl: 40rpx;
+$font-3xl: 48rpx;
+
+// 阴影
+$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+$shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.12);
+$shadow-xl: 0 16rpx 48rpx rgba(0, 0, 0, 0.16);
+
+// Glassmorphism阴影
+$glass-shadow: 0 8rpx 32rpx 0 rgba(31, 38, 135, 0.15);
+
+// ============ Glassmorphism效果 ============
+
+@mixin glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20rpx);
+  -webkit-backdrop-filter: blur(20rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.4);
+  box-shadow: $glass-shadow;
+}
+
+@mixin glass-card-dark {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(30rpx);
+  -webkit-backdrop-filter: blur(30rpx);
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+// ============ 动画 ============
+
+// 缓动函数
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// 持续时间
+$duration-fast: 0.15s;
+$duration-normal: 0.3s;
+$duration-slow: 0.5s;
+
+// ============ 通用混入 ============
+
+// 文字渐变
+@mixin text-gradient($gradient) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// 卡片hover效果
+@mixin card-hover {
+  transition: all $duration-normal $ease-out;
+  
+  &:active {
+    transform: translateY(2rpx);
+    box-shadow: $shadow-md;
+  }
+}
+
+// Flex居中
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// Flex横向
+@mixin flex-row {
+  display: flex;
+  align-items: center;
+}
+
+// Flex纵向
+@mixin flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+// 单行文本省略
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文本省略
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
