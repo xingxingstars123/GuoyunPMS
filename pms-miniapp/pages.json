@@ -121,7 +121,7 @@
       {
         "pagePath": "pages/mine/mine",
         "iconPath": "static/images/mine.svg",
-        "selectedIconPath":="static/images/mine-active.svg",
+        "selectedIconPath": "static/images/mine-active.svg",
         "text": "我的"
       }
     ]
