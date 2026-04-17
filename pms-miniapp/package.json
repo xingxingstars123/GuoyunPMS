@@ -8,13 +8,13 @@
     "build:mp-weixin": "cross-env NODE_ENV=production UNI_PLATFORM=mp-weixin vue-cli-service uni-build"
   },
   "dependencies": {
-    "@dcloudio/uni-app": "^2.0.0",
-    "@dcloudio/uni-h5": "^2.0.0",
-    "@dcloudio/uni-mp-weixin": "^2.0.0",
+    "@dcloudio/uni-app": "2.0.2-alpha-5000720260327001",
+    "@dcloudio/uni-h5": "2.0.2-alpha-5000720260327001",
+    "@dcloudio/uni-mp-weixin": "2.0.2-alpha-5000720260327001",
     "vue": "^2.6.14"
   },
   "devDependencies": {
-    "@dcloudio/vue-cli-plugin-uni": "^2.0.0",
+    "@dcloudio/vue-cli-plugin-uni": "2.0.2-alpha-5000720260327001",
     "@vue/cli-service": "^4.5.0",
     "cross-env": "^7.0.3",
     "vue-template-compiler": "^2.6.14"
