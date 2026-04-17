@@ -22,13 +22,13 @@
       <view class="room-row" v-for="room in rooms" :key="room.id">
         <view class="room-cell">{{ room.room_number }}</view>
         <view 
-          class="status-cell" 
-          :class="getCellClass(room, date)"
           v-for="date in dates" 
           :key="date"
+          class="status-cell"
+          :class="calendar[room.id] && calendar[room.id][date] ? calendar[room.id][date] : 'available'"
           @tap="viewDetail(room, date)"
         >
-          <text class="status-text">{{ getCellText(room, date) }}</text>
+          <text class="status-text">{{ calendar[room.id] && calendar[room.id][date] ? (calendar[room.id][date] === 'available' ? '可' : calendar[room.id][date] === 'booked' ? '售' : '修') : '可' }}</text>
         </view>
       </view>
       
