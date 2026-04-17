@@ -96,32 +96,32 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "iconPath": "static/images/home.svg",
-        "selectedIconPath": "static/images/home-active.svg",
+        "iconPath": "static/images/home.png",
+        "selectedIconPath": "static/images/home-active.png",
         "text": "首页"
       },
       {
         "pagePath": "pages/messages/messages",
-        "iconPath": "static/images/message.svg",
-        "selectedIconPath": "static/images/message-active.svg",
+        "iconPath": "static/images/message.png",
+        "selectedIconPath": "static/images/message-active.png",
         "text": "消息"
       },
       {
         "pagePath": "pages/room-calendar/room-calendar",
-        "iconPath": "static/images/calendar.svg",
-        "selectedIconPath": "static/images/calendar-active.svg",
+        "iconPath": "static/images/calendar.png",
+        "selectedIconPath": "static/images/calendar-active.png",
         "text": "房态"
       },
       {
         "pagePath": "pages/finance/finance",
-        "iconPath": "static/images/finance.svg",
-        "selectedIconPath": "static/images/finance-active.svg",
+        "iconPath": "static/images/finance.png",
+        "selectedIconPath": "static/images/finance-active.png",
         "text": "统计"
       },
       {
         "pagePath": "pages/mine/mine",
-        "iconPath": "static/images/mine.svg",
-        "selectedIconPath": "static/images/mine-active.svg",
+        "iconPath": "static/images/mine.png",
+        "selectedIconPath": "static/images/mine-active.png",
         "text": "我的"
       }
     ]
