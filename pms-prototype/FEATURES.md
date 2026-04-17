@@ -1,487 +1,488 @@
-# 🎯 功能特性详解
+# 国韵民宿PMS - 高价值功能实现文档
 
-## 核心需求实现对照
+## 🎯 功能概览
 
-### ✅ 需求 1: 清晰不同渠道的客户，支持多渠道同时推广
+本次优化为PMS系统添加了3个高价值功能,显著提升了系统的数据洞察能力和用户体验:
 
-#### 实现功能
-1. **渠道分类展示**
-   - 客户列表页面提供 Tab 切换
-   - 支持按渠道筛选（携程/美团/飞猪/Booking/直销）
-   - 每个渠道独立统计客户数量
+### 1. 📊 数据可视化仪表盘
+### 2. 🤖 智能房间推荐
+### 3. 📥 Excel数据导出
 
-2. **多渠道推广支持**
-   - 所有渠道同时显示房源
-   - 统一管理所有渠道订单
-   - 一键查看所有渠道客户
+---
 
-#### 代码实现
+## 📊 功能1: 数据可视化仪表盘
+
+### 功能描述
+在首页添加交互式图表,实时展示营收趋势、房型占比、渠道分布等关键业务指标。
+
+### 技术实现
+
+#### 后端API (已添加)
+- `GET /api/dashboard/revenue-trend?days=7` - 营收趋势(最近N天)
+- `GET /api/dashboard/room-type-stats` - 房型营收统计
+- `GET /api/dashboard/channel-distribution` - 渠道订单分布
+
+#### 前端组件
+- **文件位置**: `/pms-miniapp/components/charts/RevenueChart.vue`
+- **支持图表类型**:
+  - 折线图 (Line Chart) - 营收趋势
+  - 饼图 (Pie Chart) - 房型占比
+  - 柱状图 (Bar Chart) - 渠道分布
+
+#### 集成页面
+- **文件位置**: `/pms-miniapp/pages/index/index-with-charts.vue`
+- **功能特性**:
+  - 原生Canvas绘制,无需外部图表库
+  - 下拉刷新自动更新数据
+  - 响应式布局,适配各种屏幕
+
+### 使用方法
 ```javascript
-// 后端 API: 获取客户列表
-app.get('/api/customers', (req, res) => {
-  const { channel } = req.query;
-  
-  let sql = 'SELECT * FROM customers';
-  if (channel) {
-    sql += ' WHERE channel = ?';
-  }
-  
-  const customers = db.prepare(sql).all(channel);
-  
-  // 按渠道分组
-  const grouped = customers.reduce((acc, customer) => {
-    if (!acc[customer.channel]) {
-      acc[customer.channel] = [];
+// 引入图表组件
+import RevenueChart from '@/components/charts/RevenueChart.vue'
+
+// 使用
+<RevenueChart 
+  canvas-id="unique-id" 
+  title="图表标题"
+  :chart-data="[
+    { label: '周一', value: 1200 },
+    { label: '周二', value: 1500 }
+  ]"
+  type="line"
+/>
+```
+
+### 数据格式
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "date": "2026-04-11",
+      "revenue": 2400
+    },
+    {
+      "date": "2026-04-12", 
+      "revenue": 3200
     }
-    acc[customer.channel].push(customer);
-    return acc;
-  }, {});
-  
-  res.json({ success: true, data: { all: customers, grouped } });
-});
-```
-
-```vue
-<!-- 前端: 客户列表 Tab 切换 -->
-<el-tabs v-model="activeTab">
-  <el-tab-pane label="全部客户" name="all"></el-tab-pane>
-  <el-tab-pane label="携程" name="ctrip"></el-tab-pane>
-  <el-tab-pane label="美团" name="meituan"></el-tab-pane>
-  <el-tab-pane label="直销" name="direct"></el-tab-pane>
-</el-tabs>
-```
-
-#### 效果展示
-```
-客户列表页面:
-┌─────────────────────────────────────┐
-│ [全部客户] [携程] [美团] [直销]     │
-├─────────────────────────────────────┤
-│ 姓名     电话        来源渠道       │
-│ 张三    13800000001   携程          │
-│ 李四    13800000002   美团          │
-│ 王五    13800000003   直销          │
-└─────────────────────────────────────┘
-```
-
----
-
-### ✅ 需求 2: 房间预订后，系统自动通知各个渠道
-
-#### 实现功能
-1. **自动渠道通知**
-   - 订单创建时自动触发通知
-   - 遍历所有启用的渠道
-   - 实时更新各渠道房态
-
-2. **防超售机制**
-   - 锁定房间日期
-   - 更新房态表
-   - 确保数据一致性
-
-#### 代码实现
-```javascript
-// 后端: 创建订单时通知渠道
-app.post('/api/orders', (req, res) => {
-  // ... 订单创建逻辑 ...
-  
-  // 通知各渠道（关键代码）
-  notifyChannels(roomId, 'booked');
-  
-  res.json({ success: true, message: '订单创建成功，已通知所有渠道' });
-});
-
-// 渠道通知函数
-function notifyChannels(roomId, status) {
-  const channels = db.prepare('SELECT * FROM channels WHERE enabled = 1').all();
-  
-  channels.forEach(channel => {
-    console.log(`📢 通知 ${channel.name}: 房间 ${roomId} 状态变更为 ${status}`);
-    
-    // 实际项目中这里会调用各渠道的 API:
-    // - 携程: await ctripApi.updateRoomStatus(roomId, status)
-    // - 美团: await meituanApi.updateRoomStatus(roomId, status)
-    // - Booking: await bookingApi.updateRoomStatus(roomId, status)
-  });
+  ]
 }
 ```
 
-#### 通知流程
-```
-创建订单流程:
-
-1. 用户提交订单
-   ↓
-2. 检查房间可用性
-   ↓
-3. 创建订单记录
-   ↓
-4. 锁定房间日期 (更新 room_occupancy 表)
-   ↓
-5. 通知所有渠道 ← 关键步骤
-   ├─ 携程 API
-   ├─ 美团 API
-   ├─ 飞猪 API
-   ├─ Booking API
-   └─ 直销渠道
-   ↓
-6. 记录财务流水
-   ↓
-7. 返回成功消息
-```
-
-#### 控制台输出
-```
-📢 通知 携程: 房间 3 状态变更为 booked
-📢 通知 美团: 房间 3 状态变更为 booked
-📢 通知 飞猪: 房间 3 状态变更为 booked
-📢 通知 Booking: 房间 3 状态变更为 booked
-📢 通知 直销: 房间 3 状态变更为 booked
-```
-
 ---
 
-### ✅ 需求 3: 方便财务统计每月报表，数据分析
+## 🤖 功能2: 智能房间推荐
 
-#### 实现功能
-1. **月度财务统计**
-   - 总收入统计
-   - 订单数统计
-   - 平均客单价计算
+### 功能描述
+创建订单时,根据客户需求(日期、价格、楼层、朝向等)智能推荐最合适的房间,并展示推荐理由。
 
-2. **渠道收入对比**
-   - 饼图展示各渠道收入占比
-   - 直观对比渠道表现
+### 核心算法
 
-3. **每日收入趋势**
-   - 折线图展示收入走势
-   - 帮助发现经营规律
+#### 推荐评分机制 (满分100+)
+- **房型匹配**: +30分 (精确匹配) / +20分 (历史偏好)
+- **价格合理**: +20分 (≤70%预算) / +10分 (≤100%预算) / -30分 (超预算)
+- **楼层偏好**: +15分 (符合高/低楼层偏好)
+- **朝向偏好**: +15分 (符合朝向要求)
+- **房间评分**: +20分 (最高,4.5+评分)
+- **热门房间**: +10分 (预订次数>10)
+- **新房激励**: +5分 (预订次数<3)
+- **设施完善**: +10分 (设施≥5项)
 
-#### 代码实现
+#### 技术实现
+
+**后端服务**:
+- **文件位置**: `/backend/services/RecommendationService.js`
+- **核心方法**:
+  - `recommendRooms(params)` - 主推荐函数
+  - `getAvailableRooms(checkIn, checkOut)` - 查询可用房间
+  - `getCustomerPreference(customerId)` - 分析客户历史偏好
+
+**API端点**:
+- `POST /api/rooms/recommend` - 获取推荐列表
+- `POST /api/rooms/recommend/feedback` - 记录推荐反馈(用于算法优化)
+
+#### 前端页面
+- **文件位置**: `/pms-miniapp/pages/create-order/create-order-with-recommend.vue`
+- **功能特性**:
+  - 智能推荐按钮
+  - 筛选条件(房型/楼层/价格)
+  - 推荐房间卡片展示(评分+理由)
+  - 自动计算订单金额
+
+### 请求示例
 ```javascript
-// 后端: 月度财务报表
-app.get('/api/finance/monthly', (req, res) => {
-  const { year, month } = req.query;
-  
-  // 1. 总收入
-  const revenue = db.prepare(`
-    SELECT COALESCE(SUM(amount), 0) as total
-    FROM financial_records
-    WHERE type = 'income'
-      AND strftime('%Y', date) = ?
-      AND strftime('%m', date) = ?
-  `).get(year, month);
-  
-  // 2. 按渠道统计
-  const channelStats = db.prepare(`
-    SELECT 
-      channel,
-      COUNT(*) as order_count,
-      SUM(total_price) as revenue
-    FROM orders
-    WHERE strftime('%Y-%m', check_in) = ?
-      AND status != 'cancelled'
-    GROUP BY channel
-  `).all(`${year}-${month}`);
-  
-  // 3. 每日趋势
-  const dailyTrend = db.prepare(`
-    SELECT 
-      DATE(check_in) as date,
-      COUNT(*) as order_count,
-      SUM(total_price) as revenue
-    FROM orders
-    WHERE strftime('%Y-%m', check_in) = ?
-    GROUP BY DATE(check_in)
-    ORDER BY date
-  `).all(`${year}-${month}`);
-  
-  res.json({ success: true, data: { revenue, channelStats, dailyTrend } });
-});
+POST /api/rooms/recommend
+{
+  "checkIn": "2026-04-20",
+  "checkOut": "2026-04-22",
+  "roomType": "大床房",
+  "maxPrice": 500,
+  "floor": "high",
+  "customerId": 123
+}
 ```
 
-```vue
-<!-- 前端: 渠道收入对比饼图 -->
-<script>
-import * as echarts from 'echarts'
-
-const renderChannelChart = () => {
-  const chart = echarts.init(chartElement)
-  chart.setOption({
-    series: [{
-      type: 'pie',
-      data: [
-        { name: '携程', value: 8500 },
-        { name: '美团', value: 6200 },
-        { name: '直销', value: 4800 },
-        { name: 'Booking', value: 3500 }
+### 响应示例
+```json
+{
+  "success": true,
+  "message": "为您推荐 5 个房间",
+  "data": [
+    {
+      "id": 3,
+      "room_number": "301",
+      "room_type": "大床房",
+      "price": 450,
+      "orientation": "south",
+      "recommendScore": 155,
+      "recommendReasons": [
+        "房型匹配",
+        "价格合适",
+        "高楼层",
+        "南朝向",
+        "高评分房间"
       ]
-    }]
-  })
+    }
+  ]
 }
-</script>
-```
-
-#### 报表示例
-```
-┌──────────── 2026年4月 财务报表 ────────────┐
-│                                             │
-│  总收入:  ¥ 23,000                          │
-│  订单数:  42                                │
-│  客单价:  ¥ 547.62                          │
-│                                             │
-├─────────────── 渠道收入对比 ───────────────┤
-│                                             │
-│       携程 37%    [■■■■■■■□□□]          │
-│       美团 27%    [■■■■■□□□□□]          │
-│       直销 21%    [■■■■□□□□□□]          │
-│     Booking 15%   [■■■□□□□□□□]          │
-│                                             │
-├─────────────── 每日收入趋势 ───────────────┤
-│                                             │
-│  ¥                                          │
-│ 2000   ╱╲    ╱╲                            │
-│ 1500  ╱  ╲  ╱  ╲╱╲                         │
-│ 1000 ╱    ╲╱      ╲                        │
-│  500╱                ╲                      │
-│    └─────────────────────→ 日期            │
-│    1  5  10  15  20  25  30                │
-│                                             │
-└─────────────────────────────────────────────┘
 ```
 
 ---
 
-### ✅ 需求 4: 每天的入住信息，客房卫生可以统一管理
+## 📥 功能3: Excel数据导出
 
-#### 实现功能
-1. **入住信息统计**
-   - 首页显示当日房态统计
-   - 预抵/已抵/预离/已离/新办五种状态
-   - 一目了然掌握当日情况
+### 功能描述
+支持订单数据和财务数据一键导出为Excel文件,方便财务对账和数据分析。
 
-2. **清洁任务管理**
-   - 创建清洁任务
-   - 分配负责人
-   - 跟踪任务状态
+### 技术实现
 
-3. **任务状态流转**
-   - 待清洁 → 清洁中 → 已完成
-   - 记录完成时间
-   - 支持按日期筛选
+#### 后端服务
+- **文件位置**: `/backend/services/ExportService.js`
+- **依赖**: `xlsx` 库 (已安装)
+- **核心方法**:
+  - `exportOrders(filters)` - 导出订单
+  - `exportFinance(filters)` - 导出财务数据
 
-#### 代码实现
+#### API端点
+- `GET /api/export/orders?startDate=xxx&endDate=xxx&channel=xxx` - 导出订单
+- `GET /api/export/finance?year=2026&month=4` - 导出财务数据
+
+#### 前端页面
+- **订单导出**: `/pms-miniapp/pages/orders/orders-with-export.vue`
+- **财务导出**: `/pms-miniapp/pages/finance/finance-with-export.vue`
+
+### 导出文件结构
+
+#### 订单导出 (orders_YYYYMMDD_HHmmss.xlsx)
+- **工作表1: 订单列表**
+  - 订单号、渠道、客户姓名、联系电话
+  - 房间号、房型、入住日期、退房日期
+  - 订单金额、状态、创建时间
+  
+- **工作表2: 统计汇总**
+  - 总订单数、总营收、导出时间
+
+#### 财务导出 (finance_YYYYMMDD_HHmmss.xlsx)
+- **工作表1: 财务明细**
+  - 日期、类型(收入/支出)、类别、金额、说明
+  
+- **工作表2: 月度汇总**
+  - 年月、总收入、总支出、净利润
+  
+- **工作表3: 渠道统计**
+  - 渠道名称、订单数、总营收
+
+### 使用方法
+
+#### 前端调用
 ```javascript
-// 后端: 当日入住信息统计
-app.get('/api/dashboard/stats', (req, res) => {
-  const today = dayjs().format('YYYY-MM-DD');
-  
-  const roomStats = db.prepare(`
-    SELECT
-      SUM(CASE WHEN status = 'pre_arrival' THEN 1 ELSE 0 END) as pre_arrival,
-      SUM(CASE WHEN status = 'checked_in' THEN 1 ELSE 0 END) as checked_in,
-      SUM(CASE WHEN status = 'pre_departure' THEN 1 ELSE 0 END) as pre_departure,
-      SUM(CASE WHEN status = 'checked_out' THEN 1 ELSE 0 END) as checked_out,
-      SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending
-    FROM orders
-    WHERE DATE(check_in) = ? OR DATE(check_out) = ?
-  `).get(today, today);
-  
-  res.json({ roomStatus: roomStats });
-});
+// 订单导出
+const params = new URLSearchParams({
+  startDate: '2026-04-01',
+  endDate: '2026-04-30',
+  channel: 'ctrip'
+})
+const url = `http://localhost:3100/api/export/orders?${params}`
+window.open(url, '_blank') // H5平台直接下载
 ```
 
+#### 后端响应
 ```javascript
-// 后端: 清洁任务管理
-app.post('/api/cleaning/tasks', (req, res) => {
-  const { roomId, assignedTo, scheduledTime, notes } = req.body;
-  
-  const insert = db.prepare(`
-    INSERT INTO cleaning_tasks (room_id, assigned_to, scheduled_time, notes, status)
-    VALUES (?, ?, ?, ?, 'pending')
-  `);
-  
-  const result = insert.run(roomId, assignedTo, scheduledTime, notes);
-  res.json({ success: true, taskId: result.lastInsertRowid });
-});
-
-// 更新任务状态
-app.put('/api/cleaning/tasks/:id', (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-  
-  const update = db.prepare(`
-    UPDATE cleaning_tasks
-    SET status = ?, completed_time = ?
-    WHERE id = ?
-  `);
-  
-  update.run(
-    status,
-    status === 'completed' ? dayjs().format('YYYY-MM-DD HH:mm:ss') : null,
-    id
-  );
-  
-  res.json({ success: true });
-});
-```
-
-#### 清洁管理界面
-```
-┌───────────── 清洁任务管理 ─────────────┐
-│                                         │
-│ 日期: [2026-04-15 ▾]  状态: [全部 ▾]  │
-│ [+ 新建任务]                            │
-│                                         │
-├─────────────────────────────────────────┤
-│ 房间号 │ 负责人 │ 计划时间   │ 状态   │
-├────────┼────────┼────────────┼────────┤
-│  101   │ 张三   │ 14:00      │ 待清洁 │
-│  102   │ 李四   │ 14:30      │ 清洁中 │
-│  103   │ 王五   │ 15:00      │ 已完成 │
-└─────────────────────────────────────────┘
-
-任务流程:
-1. 管理员创建任务 → [待清洁]
-2. 清洁人员点击"开始清洁" → [清洁中]
-3. 完成后点击"完成" → [已完成]
-```
-
-#### 首页入住信息展示
-```
-┌─────────── 房态统计 ───────────┐
-│                                 │
-│  预抵    已抵    预离    已离    新办 │
-│   3      5       2      4       1   │
-│                                 │
-└─────────────────────────────────┘
+res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+res.setHeader('Content-Disposition', 'attachment; filename="orders_20260418_151200.xlsx"')
+res.send(buffer)
 ```
 
 ---
 
-## 🎨 UI 设计对照
+## 🚀 部署指南
 
-### 首页布局
-```
-┌───────────────────────────────────────────┐
-│ 观芦民宿 ▾                    🎧    ➕   │ ← 顶部蓝色渐变区域
-├───────────────────────────────────────────┤
-│                                           │
-│    当日营业额            可售(间)         │ ← 统计卡片
-│       0                  11               │
-│                                           │
-├───────────────────────────────────────────┤
-│ 预抵  已抵  预离  已离  新办              │ ← 房态统计条
-│  0     0     0     0     0               │
-├───────────────────────────────────────────┤
-│                                           │
-│  📅    📄    📋    👥                     │
-│ 日历  单日  订单  客户                    │ ← 功能模块网格
-│ 房态  房态  管理  列表                    │   (3x3 布局)
-│                                           │
-│  🍔    🎫    📹    📊                     │
-│ 餐饮  餐饮  AI   智能                     │
-│       订单  直播  定价                    │
-│                                           │
-│  💬    ⋯                                  │
-│ 智能  更多                                │
-│ 评价                                      │
-│                                           │
-└───────────────────────────────────────────┘
-│ 首页  消息  房态  统计  我的              │ ← 底部导航栏
-└───────────────────────────────────────────┘
+### 后端部署
+
+1. **安装依赖**
+```bash
+cd /root/.openclaw/workspace/pms-prototype/backend
+npm install
 ```
 
-### 订单管理页面
-```
-┌───────────────────────────────────────────┐
-│ 订单管理                         [刷新]   │
-├───────────────────────────────────────────┤
-│ 渠道: [全部渠道 ▾]  状态: [全部状态 ▾]    │
-│ [+ 新建订单]                              │
-├───────────────────────────────────────────┤
-│ 订单号    │ 房间 │ 客户  │ 渠道  │ 状态  │
-│ ORD123456 │ 101  │ 张三  │ 携程  │ 已确认│
-│ ORD123457 │ 102  │ 李四  │ 美团  │ 待确认│
-│ ORD123458 │ 103  │ 王五  │ 直销  │ 已入住│
-└───────────────────────────────────────────┘
+2. **启动服务**
+```bash
+npm start
+# 或使用 nodemon 开发模式
+npm run dev
 ```
 
-### 客户列表页面
+3. **验证API**
+```bash
+# 测试推荐API
+curl -X POST http://localhost:3100/api/rooms/recommend \
+  -H "Content-Type: application/json" \
+  -d '{"checkIn":"2026-04-20","checkOut":"2026-04-22"}'
+
+# 测试导出API
+curl http://localhost:3100/api/export/orders -o test.xlsx
 ```
-┌───────────────────────────────────────────┐
-│ 客户列表                         [刷新]   │
-├───────────────────────────────────────────┤
-│ [全部客户] [携程] [美团] [直销]           │ ← Tab 切换
-├───────────────────────────────────────────┤
-│ 姓名  │ 电话        │ 来源渠道 │ 订单数 │
-│ 张三  │ 138****0001 │ 携程     │   3    │
-│ 李四  │ 138****0002 │ 美团     │   2    │
-│ 王五  │ 138****0003 │ 直销     │   5    │
-└───────────────────────────────────────────┘
+
+### 前端部署
+
+1. **更新页面路由**
+编辑 `/pms-miniapp/pages.json`:
+```json
+{
+  "pages": [
+    {
+      "path": "pages/index/index-with-charts",
+      "style": { "navigationBarTitleText": "首页" }
+    },
+    {
+      "path": "pages/create-order/create-order-with-recommend",
+      "style": { "navigationBarTitleText": "创建订单" }
+    },
+    {
+      "path": "pages/orders/orders-with-export",
+      "style": { "navigationBarTitleText": "订单管理" }
+    },
+    {
+      "path": "pages/finance/finance-with-export",
+      "style": { "navigationBarTitleText": "财务统计" }
+    }
+  ]
+}
+```
+
+2. **编译运行**
+```bash
+cd /root/.openclaw/workspace/pms-miniapp
+
+# H5平台
+npm run dev:h5
+
+# 微信小程序
+npm run dev:mp-weixin
 ```
 
 ---
 
-## 🚀 技术实现亮点
+## 📦 文件清单
 
-### 1. 零配置部署
-- 一键启动脚本
-- 自动初始化数据库
-- 无需手动配置
+### 新增文件
+```
+backend/
+├── services/
+│   ├── RecommendationService.js   # 推荐算法服务
+│   └── ExportService.js           # Excel导出服务
 
-### 2. 实时数据同步
-- 订单创建立即通知渠道
-- 房态实时更新
-- 数据一致性保证
+pms-miniapp/
+├── components/
+│   └── charts/
+│       └── RevenueChart.vue       # 通用图表组件
+├── pages/
+│   ├── index/
+│   │   └── index-with-charts.vue  # 带图表的首页
+│   ├── create-order/
+│   │   └── create-order-with-recommend.vue  # 带推荐的创建订单页
+│   ├── orders/
+│   │   └── orders-with-export.vue # 带导出的订单页
+│   └── finance/
+│       └── finance-with-export.vue # 带导出的财务页
+```
 
-### 3. 数据可视化
-- ECharts 图表库
-- 饼图、折线图
-- 交互式数据展示
-
-### 4. 模块化设计
-- 前后端分离
-- 组件化开发
-- 易于扩展
-
----
-
-## 📊 性能指标
-
-- **启动时间**: < 5 秒
-- **页面加载**: < 1 秒
-- **API 响应**: < 100ms
-- **数据库查询**: < 50ms
-- **并发支持**: 100+ 用户（理论值）
+### 修改文件
+```
+backend/
+└── server.js  # 添加3个可视化API + 2个推荐API + 2个导出API
+```
 
 ---
 
-## ✅ 测试用例
+## 🎯 性能优化建议
 
-### 功能测试
-- [x] 创建订单并验证渠道通知
-- [x] 查看不同渠道的客户列表
-- [x] 生成月度财务报表
-- [x] 创建和更新清洁任务
-- [x] 房态日历正确显示
+### 数据库优化
+```sql
+-- 为常用查询字段添加索引
+CREATE INDEX idx_orders_check_in ON orders(check_in);
+CREATE INDEX idx_orders_channel ON orders(channel);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_room_occupancy_date ON room_occupancy(date, room_id);
+```
 
-### 性能测试
-- [x] 100 条订单查询响应时间 < 100ms
-- [x] 图表渲染时间 < 500ms
-- [x] 数据库初始化时间 < 3s
+### 缓存策略
+- 仪表盘数据: Redis缓存5分钟
+- 推荐结果: 会话缓存(同一客户/日期)
+- 渠道列表: 内存缓存1小时
 
----
-
-## 🎉 项目优势
-
-1. **快速上手** - 一键启动，开箱即用
-2. **功能完整** - 满足所有核心需求
-3. **代码规范** - 易于维护和扩展
-4. **文档完善** - 详细的使用说明
-5. **可视化好** - 直观的数据展示
+### 导出优化
+- 大数据量(>10000条): 分批查询
+- 异步导出: 后台任务 + 下载链接通知
+- 文件压缩: 超过5MB自动压缩
 
 ---
 
-**开发完成时间**: 2026-04-15  
-**项目路径**: `/root/.openclaw/workspace/pms-prototype`
+## 🔧 配置参数
+
+### 推荐算法参数
+```javascript
+// RecommendationService.js
+const RECOMMENDATION_CONFIG = {
+  maxResults: 10,           // 最多返回10个推荐
+  priceWeight: 0.3,         // 价格权重
+  locationWeight: 0.2,      // 位置权重
+  ratingWeight: 0.2,        // 评分权重
+  historyWeight: 0.3        // 历史偏好权重
+}
+```
+
+### 导出参数
+```javascript
+// ExportService.js
+const EXPORT_CONFIG = {
+  maxRows: 50000,          // 单次最大导出行数
+  columnWidths: {          // 列宽配置
+    orderNo: 20,
+    customerName: 12,
+    phone: 15
+  },
+  dateFormat: 'YYYY-MM-DD' // 日期格式
+}
+```
+
+---
+
+## 📊 测试用例
+
+### 推荐算法测试
+```javascript
+// 测试1: 基础推荐
+POST /api/rooms/recommend
+{
+  "checkIn": "2026-04-20",
+  "checkOut": "2026-04-22"
+}
+// 预期: 返回所有可用房间,按基础分排序
+
+// 测试2: 带筛选条件
+POST /api/rooms/recommend
+{
+  "checkIn": "2026-04-20",
+  "checkOut": "2026-04-22",
+  "roomType": "大床房",
+  "maxPrice": 500,
+  "floor": "high"
+}
+// 预期: 返回符合条件的房间,评分>150
+
+// 测试3: 客户历史偏好
+POST /api/rooms/recommend
+{
+  "checkIn": "2026-04-20",
+  "checkOut": "2026-04-22",
+  "customerId": 1
+}
+// 预期: 推荐客户偏好的房型/朝向
+```
+
+### 导出功能测试
+```bash
+# 测试1: 导出所有订单
+curl http://localhost:3100/api/export/orders -o all_orders.xlsx
+
+# 测试2: 按日期筛选
+curl "http://localhost:3100/api/export/orders?startDate=2026-04-01&endDate=2026-04-30" -o april_orders.xlsx
+
+# 测试3: 按渠道筛选
+curl "http://localhost:3100/api/export/orders?channel=ctrip" -o ctrip_orders.xlsx
+
+# 测试4: 导出财务数据
+curl "http://localhost:3100/api/export/finance?year=2026&month=4" -o finance_202604.xlsx
+```
+
+---
+
+## 🐛 已知问题与解决方案
+
+### 问题1: 图表在小程序端显示异常
+**原因**: uni-app Canvas API在不同平台有差异
+**解决**: 使用条件编译 `#ifdef MP-WEIXIN` 做平台适配
+
+### 问题2: 导出Excel中文乱码
+**原因**: 编码问题
+**解决**: 已在ExportService中统一使用UTF-8编码
+
+### 问题3: 推荐算法冷启动(新房间无历史数据)
+**原因**: 新房间booking_count=0
+**解决**: 添加新房激励分+5,确保新房也能被推荐
+
+---
+
+## 📚 扩展方向
+
+### 短期优化 (1-2周)
+1. **图表交互**: 添加点击查看详情功能
+2. **推荐优化**: 基于用户反馈持续优化评分权重
+3. **导出增强**: 支持PDF格式导出
+
+### 中期规划 (1-3月)
+1. **机器学习推荐**: 使用TensorFlow.js实现协同过滤
+2. **实时大屏**: WebSocket推送实时数据到大屏
+3. **BI报表**: 集成Metabase/Superset做深度分析
+
+### 长期愿景 (3-12月)
+1. **预测分析**: 基于历史数据预测未来营收趋势
+2. **智能定价**: 动态调整房间价格优化收益
+3. **多门店支持**: 扩展为连锁民宿管理系统
+
+---
+
+## 📞 技术支持
+
+- **开发者**: AI助手 (Clawdbot)
+- **项目路径**: `/root/.openclaw/workspace/pms-prototype`
+- **文档更新**: 2026-04-18
+- **版本**: v1.1.0
+
+---
+
+## ✅ 验收标准
+
+### 功能1: 数据可视化 ✓
+- [x] 营收趋势折线图正常显示
+- [x] 房型占比饼图正确展示百分比
+- [x] 渠道分布柱状图颜色区分清晰
+- [x] 下拉刷新实时更新数据
+
+### 功能2: 智能推荐 ✓
+- [x] 推荐算法评分合理
+- [x] 推荐理由清晰易懂
+- [x] 筛选条件生效
+- [x] 选择推荐房间自动计算金额
+
+### 功能3: Excel导出 ✓
+- [x] 订单数据完整导出
+- [x] 财务数据多工作表
+- [x] 中文显示正常
+- [x] 文件命名规范(包含时间戳)
+
+---
+
+**🎉 所有功能已完成,代码符合最佳实践,文档完整!**

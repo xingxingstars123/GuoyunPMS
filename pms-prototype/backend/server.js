@@ -3,6 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const dayjs = require('dayjs');
 const { db, initDatabase } = require('./database');
+const RecommendationService = require('./services/RecommendationService');
+const ExportService = require('./services/ExportService');
 
 const app = express();
 const PORT = 3100;
@@ -274,6 +276,64 @@ app.get('/api/finance/monthly', (req, res) => {
   });
 });
 
+// 📊 新增: 数据可视化 - 营收趋势(最近7天)
+app.get('/api/dashboard/revenue-trend', (req, res) => {
+  const days = parseInt(req.query.days) || 7;
+  const endDate = dayjs();
+  const startDate = endDate.subtract(days - 1, 'day');
+  
+  const trend = [];
+  for (let i = 0; i < days; i++) {
+    const date = startDate.add(i, 'day').format('YYYY-MM-DD');
+    const revenue = db.prepare(`
+      SELECT COALESCE(SUM(total_price), 0) as total
+      FROM orders
+      WHERE DATE(check_in) = ? AND status != 'cancelled'
+    `).get(date);
+    
+    trend.push({
+      date,
+      revenue: revenue.total
+    });
+  }
+  
+  res.json({ success: true, data: trend });
+});
+
+// 📊 新增: 数据可视化 - 房型占比
+app.get('/api/dashboard/room-type-stats', (req, res) => {
+  const stats = db.prepare(`
+    SELECT 
+      r.room_type,
+      COUNT(DISTINCT r.id) as room_count,
+      COUNT(o.id) as order_count,
+      COALESCE(SUM(o.total_price), 0) as revenue
+    FROM rooms r
+    LEFT JOIN orders o ON r.id = o.room_id AND o.status != 'cancelled'
+    GROUP BY r.room_type
+    ORDER BY revenue DESC
+  `).all();
+  
+  res.json({ success: true, data: stats });
+});
+
+// 📊 新增: 数据可视化 - 渠道分布
+app.get('/api/dashboard/channel-distribution', (req, res) => {
+  const distribution = db.prepare(`
+    SELECT 
+      channel,
+      COUNT(*) as order_count,
+      COALESCE(SUM(total_price), 0) as revenue
+    FROM orders
+    WHERE status != 'cancelled'
+      AND DATE(created_at) >= DATE('now', '-30 day')
+    GROUP BY channel
+    ORDER BY revenue DESC
+  `).all();
+  
+  res.json({ success: true, data: distribution });
+});
+
 // 7. 清洁任务管理
 app.get('/api/cleaning/tasks', (req, res) => {
   const { status, date } = req.query;
@@ -344,6 +404,62 @@ app.put('/api/cleaning/tasks/:id', (req, res) => {
 app.get('/api/channels', (req, res) => {
   const channels = db.prepare('SELECT * FROM channels WHERE enabled = 1').all();
   res.json({ success: true, data: channels });
+});
+
+// 🤖 新增: 智能房间推荐
+app.post('/api/rooms/recommend', (req, res) => {
+  try {
+    const recommendations = RecommendationService.recommendRooms(req.body);
+    
+    res.json({
+      success: true,
+      message: `为您推荐 ${recommendations.length} 个房间`,
+      data: recommendations
+    });
+  } catch (error) {
+    console.error('房间推荐失败:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 🤖 新增: 记录推荐选择(用于优化算法)
+app.post('/api/rooms/recommend/feedback', (req, res) => {
+  const { customerId, roomId, recommended, selected } = req.body;
+  
+  try {
+    RecommendationService.logRecommendation(customerId, roomId, recommended, selected);
+    res.json({ success: true, message: '反馈已记录' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 💾 新增: 导出订单为Excel
+app.get('/api/export/orders', (req, res) => {
+  try {
+    const buffer = ExportService.exportOrders(req.query);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="orders_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('导出订单失败:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// 💾 新增: 导出财务数据为Excel
+app.get('/api/export/finance', (req, res) => {
+  try {
+    const buffer = ExportService.exportFinance(req.query);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="finance_${dayjs().format('YYYYMMDD_HHmmss')}.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('导出财务数据失败:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
 // ============ 辅助函数 ============
