@@ -1,0 +1,19 @@
+{
+  "name": "pms-miniapp",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:h5": "cross-env NODE_ENV=development UNI_PLATFORM=h5 vue-cli-service serve",
+    "build:h5": "cross-env NODE_ENV=production UNI_PLATFORM=h5 vue-cli-service build"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "^2.0.0",
+    "@dcloudio/uni-h5": "^2.0.0",
+    "vue": "^2.6.14"
+  },
+  "devDependencies": {
+    "@dcloudio/vue-cli-plugin-uni": "^2.0.0",
+    "@vue/cli-service": "^4.5.0",
+    "cross-env": "^7.0.3",
+    "vue-template-compiler": "^2.6.14"
+  }
+}
