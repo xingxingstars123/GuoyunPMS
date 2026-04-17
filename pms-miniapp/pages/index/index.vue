@@ -50,15 +50,15 @@
         <text class="grid-icon">📊</text>
         <text class="grid-label">财务统计</text>
       </view>
-      <view class="grid-item">
+      <view class="grid-item" @tap="navigateTo('/pages/room-calendar/room-calendar')">
         <text class="grid-icon">📅</text>
         <text class="grid-label">房态日历</text>
       </view>
-      <view class="grid-item">
+      <view class="grid-item" @tap="navigateTo('/pages/cleaning/cleaning')">
         <text class="grid-icon">🧹</text>
         <text class="grid-label">清洁管理</text>
       </view>
-      <view class="grid-item">
+      <view class="grid-item" @tap="navigateTo('/pages/settings/settings')">
         <text class="grid-icon">⚙️</text>
         <text class="grid-label">系统设置</text>
       </view>
