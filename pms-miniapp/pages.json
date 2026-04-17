@@ -17,11 +17,12 @@
       }
     },
     {
-      "path": "pages/orders/orders",
+      "path": "pages/messages/messages",
       "style": {
-        "navigationBarTitleText": "订单管理",
+        "navigationBarTitleText": "消息通知",
         "navigationBarBackgroundColor": "#4A90E2",
-        "navigationBarTextStyle": "white"
+        "navigationBarTextStyle": "white",
+        "enablePullDownRefresh": true
       }
     },
     {
@@ -41,6 +42,14 @@
       }
     },
     {
+      "path": "pages/orders/orders",
+      "style": {
+        "navigationBarTitleText": "订单管理",
+        "navigationBarBackgroundColor": "#4A90E2",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
       "path": "pages/cleaning/cleaning",
       "style": {
         "navigationBarTitleText": "清洁管理",
@@ -52,14 +61,6 @@
       "path": "pages/create-order/create-order",
       "style": {
         "navigationBarTitleText": "创建订单",
-        "navigationBarBackgroundColor": "#4A90E2",
-        "navigationBarTextStyle": "white"
-      }
-    },
-    {
-      "path": "pages/messages/messages",
-      "style": {
-        "navigationBarTitleText": "消息通知",
         "navigationBarBackgroundColor": "#4A90E2",
         "navigationBarTextStyle": "white"
       }
@@ -90,37 +91,37 @@
   "tabBar": {
     "color": "#7A7E83",
     "selectedColor": "#4A90E2",
-    "borderStyle": "black",
-    "backgroundColor": "#F8F8F8",
+    "borderStyle": "white",
+    "backgroundColor": "#FFFFFF",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "iconPath": "static/images/home.png",
-        "selectedIconPath": "static/images/home-active.png",
+        "iconPath": "static/images/home.svg",
+        "selectedIconPath": "static/images/home-active.svg",
         "text": "首页"
       },
       {
+        "pagePath": "pages/messages/messages",
+        "iconPath": "static/images/message.svg",
+        "selectedIconPath": "static/images/message-active.svg",
+        "text": "消息"
+      },
+      {
         "pagePath": "pages/room-calendar/room-calendar",
-        "iconPath": "static/images/calendar.png",
-        "selectedIconPath": "static/images/calendar-active.png",
+        "iconPath": "static/images/calendar.svg",
+        "selectedIconPath": "static/images/calendar-active.svg",
         "text": "房态"
       },
       {
-        "pagePath": "pages/orders/orders",
-        "iconPath": "static/images/order.png",
-        "selectedIconPath": "static/images/order-active.png",
-        "text": "订单"
-      },
-      {
         "pagePath": "pages/finance/finance",
-        "iconPath": "static/images/finance.png",
-        "selectedIconPath": "static/images/finance-active.png",
-        "text": "财务"
+        "iconPath": "static/images/finance.svg",
+        "selectedIconPath": "static/images/finance-active.svg",
+        "text": "统计"
       },
       {
         "pagePath": "pages/mine/mine",
-        "iconPath": "static/images/mine.png",
-        "selectedIconPath": "static/images/mine-active.png",
+        "iconPath": "static/images/mine.svg",
+        "selectedIconPath":="static/images/mine-active.svg",
         "text": "我的"
       }
     ]

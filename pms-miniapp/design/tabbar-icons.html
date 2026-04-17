@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>国韵民宿 TabBar 图标设计</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 36px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 18px;
+            margin-bottom: 50px;
+        }
+        
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .icon-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+        }
+        
+        .icon-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .icon-preview {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 20px;
+        }
+        
+        .icon-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F8F8F8;
+            border-radius: 12px;
+        }
+        
+        .icon-label {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        svg {
+            width: 48px;
+            height: 48px;
+        }
+        
+        .color-palette {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            margin-bottom: 40px;
+        }
+        
+        .palette-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .color-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .color-info {
+            flex: 1;
+        }
+        
+        .color-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .color-code {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏨 国韵民宿 PMS</h1>
+        <div class="subtitle">TabBar 图标设计 · 简约线性风格</div>
+        
+        <!-- 色彩方案 -->
+        <div class="color-palette">
+            <div class="palette-title">🎨 主题色彩</div>
+            <div class="color-items">
+                <div class="color-item">
+                    <div class="color-box" style="background: #4A90E2;"></div>
+                    <div class="color-info">
+                        <div class="color-name">主题蓝</div>
+                        <div class="color-code">#4A90E2</div>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #7A7E83;"></div>
+                    <div class="color-info">
+                        <div class="color-name">未选中灰</div>
+                        <div class="color-code">#7A7E83</div>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #FF4757;"></div>
+                    <div class="color-info">
+                        <div class="color-name">消息红</div>
+                        <div class="color-code">#FF4757</div>
+                    </div>
+                </div>
+                <div class="color-item">
+                    <div class="color-box" style="background: #F8F8F8;"></div>
+                    <div class="color-info">
+                        <div class="color-name">背景灰</div>
+                        <div class="color-code">#F8F8F8</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图标展示 -->
+        <div class="icons-grid">
+            <!-- 首页图标 -->
+            <div class="icon-card">
+                <div class="icon-title">首页</div>
+                <div class="icon-preview">
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 20L24 8L40 20V38C40 39.1046 39.1046 40 38 40H10C8.89543 40 8 39.1046 8 38V20Z" stroke="#7A7E83" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18 40V24H30V40" stroke="#7A7E83" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">未选中</div>
+                    </div>
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 20L24 8L40 20V38C40 39.1046 39.1046 40 38 40H10C8.89543 40 8 39.1046 8 38V20Z" stroke="#4A90E2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18 40V24H30V40" stroke="#4A90E2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">选中</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 消息图标 -->
+            <div class="icon-card">
+                <div class="icon-title">消息</div>
+                <div class="icon-preview">
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M40 24C40 32.8366 32.8366 40 24 40C21.5 40 19.1667 39.5 17 38.6667L8 40L9.33333 31C8.5 28.8333 8 26.5 8 24C8 15.1634 15.1634 8 24 8C32.8366 8 40 15.1634 40 24Z" stroke="#7A7E83" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="34" cy="14" r="6" fill="#FF4757"/>
+                                <text x="34" y="17" text-anchor="middle" fill="white" font-size="8" font-weight="bold">99+</text>
+                            </svg>
+                        </div>
+                        <div class="icon-label">未选中</div>
+                    </div>
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M40 24C40 32.8366 32.8366 40 24 40C21.5 40 19.1667 39.5 17 38.6667L8 40L9.33333 31C8.5 28.8333 8 26.5 8 24C8 15.1634 15.1634 8 24 8C32.8366 8 40 15.1634 40 24Z" stroke="#4A90E2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="34" cy="14" r="6" fill="#FF4757"/>
+                                <text x="34" y="17" text-anchor="middle" fill="white" font-size="8" font-weight="bold">99+</text>
+                            </svg>
+                        </div>
+                        <div class="icon-label">选中</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 房态图标 -->
+            <div class="icon-card">
+                <div class="icon-title">房态</div>
+                <div class="icon-preview">
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="8" y="10" width="32" height="30" rx="2" stroke="#7A7E83" stroke-width="2.5"/>
+                                <line x1="8" y1="17" x2="40" y2="17" stroke="#7A7E83" stroke-width="2.5"/>
+                                <line x1="15" y1="10" x2="15" y2="17" stroke="#7A7E83" stroke-width="2.5"/>
+                                <line x1="22" y1="10" x2="22" y2="17" stroke="#7A7E83" stroke-width="2.5"/>
+                                <line x1="29" y1="10" x2="29" y2="17" stroke="#7A7E83" stroke-width="2.5"/>
+                                <line x1="36" y1="10" x2="36" y2="17" stroke="#7A7E83" stroke-width="2.5"/>
+                                <circle cx="15" cy="25" r="1.5" fill="#7A7E83"/>
+                                <circle cx="22" cy="25" r="1.5" fill="#7A7E83"/>
+                                <circle cx="29" cy="25" r="1.5" fill="#7A7E83"/>
+                                <circle cx="36" cy="25" r="1.5" fill="#7A7E83"/>
+                                <circle cx="15" cy="32" r="1.5" fill="#7A7E83"/>
+                                <circle cx="22" cy="32" r="1.5" fill="#7A7E83"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">未选中</div>
+                    </div>
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="8" y="10" width="32" height="30" rx="2" stroke="#4A90E2" stroke-width="2.5"/>
+                                <line x1="8" y1="17" x2="40" y2="17" stroke="#4A90E2" stroke-width="2.5"/>
+                                <line x1="15" y1="10" x2="15" y2="17" stroke="#4A90E2" stroke-width="2.5"/>
+                                <line x1="22" y1="10" x2="22" y2="17" stroke="#4A90E2" stroke-width="2.5"/>
+                                <line x1="29" y1="10" x2="29" y2="17" stroke="#4A90E2" stroke-width="2.5"/>
+                                <line x1="36" y1="10" x2="36" y2="17" stroke="#4A90E2" stroke-width="2.5"/>
+                                <circle cx="15" cy="25" r="1.5" fill="#4A90E2"/>
+                                <circle cx="22" cy="25" r="1.5" fill="#4A90E2"/>
+                                <circle cx="29" cy="25" r="1.5" fill="#4A90E2"/>
+                                <circle cx="36" cy="25" r="1.5" fill="#4A90E2"/>
+                                <circle cx="15" cy="32" r="1.5" fill="#4A90E2"/>
+                                <circle cx="22" cy="32" r="1.5" fill="#4A90E2"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">选中</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 统计图标 -->
+            <div class="icon-card">
+                <div class="icon-title">统计</div>
+                <div class="icon-preview">
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="10" y="28" width="8" height="12" rx="1" stroke="#7A7E83" stroke-width="2.5"/>
+                                <rect x="20" y="18" width="8" height="22" rx="1" stroke="#7A7E83" stroke-width="2.5"/>
+                                <rect x="30" y="8" width="8" height="32" rx="1" stroke="#7A7E83" stroke-width="2.5"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">未选中</div>
+                    </div>
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="10" y="28" width="8" height="12" rx="1" stroke="#4A90E2" stroke-width="2.5"/>
+                                <rect x="20" y="18" width="8" height="22" rx="1" stroke="#4A90E2" stroke-width="2.5"/>
+                                <rect x="30" y="8" width="8" height="32" rx="1" stroke="#4A90E2" stroke-width="2.5"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">选中</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 我的图标 -->
+            <div class="icon-card">
+                <div class="icon-title">我的</div>
+                <div class="icon-preview">
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="24" cy="16" r="8" stroke="#7A7E83" stroke-width="2.5"/>
+                                <path d="M8 40C8 31.1634 15.1634 24 24 24C32.8366 24 40 31.1634 40 40" stroke="#7A7E83" stroke-width="2.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">未选中</div>
+                    </div>
+                    <div class="icon-state">
+                        <div class="icon-wrapper">
+                            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="24" cy="16" r="8" stroke="#4A90E2" stroke-width="2.5"/>
+                                <path d="M8 40C8 31.1634 15.1634 24 24 24C32.8366 24 40 31.1634 40 40" stroke="#4A90E2" stroke-width="2.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <div class="icon-label">选中</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

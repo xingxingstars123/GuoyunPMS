@@ -1,0 +1,144 @@
+/**
+ * 国韵民宿 PMS - 主题色彩系统
+ * 简约蓝色主题，现代卡片设计
+ */
+
+/* ============ 主色系 ============ */
+$primary-color: #4A90E2;
+$primary-light: #6BA3E8;
+$primary-dark: #357ABD;
+$primary-gradient: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+
+/* ============ 功能色 ============ */
+$success-color: #2ecc71;
+$warning-color: #f39c12;
+$danger-color: #FF4757;
+$info-color: #3498db;
+
+/* ============ 中性色 ============ */
+$text-primary: #333333;
+$text-secondary: #666666;
+$text-tertiary: #999999;
+$text-disabled: #CCCCCC;
+
+/* ============ 背景色 ============ */
+$bg-primary: #FFFFFF;
+$bg-secondary: #F5F7FA;
+$bg-tertiary: #F8F8F8;
+$bg-gray: #7A7E83;
+
+/* ============ 边框色 ============ */
+$border-color: #EEEEEE;
+$border-light: #F5F5F5;
+
+/* ============ 阴影 ============ */
+$shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
+$shadow-primary: 0 8rpx 24rpx rgba(74, 144, 226, 0.12);
+
+/* ============ 圆角 ============ */
+$radius-xs: 8rpx;
+$radius-sm: 12rpx;
+$radius-md: 16rpx;
+$radius-lg: 24rpx;
+$radius-xl: 32rpx;
+$radius-full: 9999rpx;
+
+/* ============ 间距 ============ */
+$spacing-xs: 8rpx;
+$spacing-sm: 16rpx;
+$spacing-md: 24rpx;
+$spacing-lg: 32rpx;
+$spacing-xl: 40rpx;
+
+/* ============ 字体大小 ============ */
+$font-xs: 20rpx;
+$font-sm: 24rpx;
+$font-md: 28rpx;
+$font-lg: 32rpx;
+$font-xl: 36rpx;
+$font-2xl: 44rpx;
+$font-3xl: 52rpx;
+
+/* ============ 渐变色板 ============ */
+$gradient-purple: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$gradient-blue: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+$gradient-green: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+$gradient-orange: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+$gradient-red: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+$gradient-gray: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+
+/* ============ 房态颜色 ============ */
+$room-available: #2ecc71;    // 可售 - 绿色
+$room-reserved: #4A90E2;     // 预订 - 蓝色
+$room-checkin: #3498db;      // 已入住 - 深蓝
+$room-checkout: #f39c12;     // 待退房 - 橙色
+$room-cleaning: #9b59b6;     // 清洁中 - 紫色
+$room-maintenance: #e74c3c;  // 维护中 - 红色
+$room-disabled: #95a5a6;     // 停用 - 灰色
+
+/* ============ Mixins ============ */
+@mixin card {
+  background: $bg-primary;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+}
+
+@mixin card-hover {
+  transition: all 0.3s ease;
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-sm;
+  }
+}
+
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ============ 通用样式类 ============ */
+.primary-color { color: $primary-color; }
+.success-color { color: $success-color; }
+.warning-color { color: $warning-color; }
+.danger-color { color: $danger-color; }
+
+.bg-primary { background: $bg-primary; }
+.bg-secondary { background: $bg-secondary; }
+.bg-gradient-primary { background: $primary-gradient; }
+
+.card {
+  @include card;
+  padding: $spacing-lg;
+}
+
+.card-interactive {
+  @include card;
+  @include card-hover;
+}
+
+.text-ellipsis {
+  @include text-ellipsis;
+}
+
+.flex-center {
+  @include flex-center;
+}
+
+.flex-between {
+  @include flex-between;
+}
