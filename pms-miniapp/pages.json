@@ -1,7 +1,7 @@
 {
   "pages": [
     {
-      "path": "pages/index/index",
+      "path": "pages/index/index-v2",
       "style": {
         "navigationBarTitleText": "国韵民宿",
         "navigationBarBackgroundColor": "#4A90E2",
@@ -95,7 +95,7 @@
     "backgroundColor": "#FFFFFF",
     "list": [
       {
-        "pagePath": "pages/index/index",
+        "pagePath": "pages/index/index-v2",
         "iconPath": "static/images/home.png",
         "selectedIconPath": "static/images/home-active.png",
         "text": "首页"
