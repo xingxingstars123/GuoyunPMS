@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: services/ExportService.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: services/ExportService.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 数据导出服务
+ * 支持导出订单、房间、财务报表等数据为Excel/CSV格式
+ */
+
+const ExcelJS = require('exceljs');
+const Database = require('better-sqlite3');
+const path = require('path');
+const fs = require('fs');
+
+class ExportService {
+  constructor() {
+    this.db = new Database(path.join(__dirname, '../database/pms.db'));
+    this.exportDir = path.join(__dirname, '../exports');
+    
+    // 确保导出目录存在
+    if (!fs.existsSync(this.exportDir)) {
+      fs.mkdirSync(this.exportDir, { recursive: true });
+    }
+  }
+
+  /**
+   * 导出订单数据
+   * @param {Object} filters - 过滤条件 {startDate, endDate, status}
+   * @param {string} format - 导出格式 (excel/csv)
+   */
+  async exportOrders(filters = {}, format = 'excel') {
+    try {
+      // 构建查询
+      let query = `
+        SELECT 
+          o.id,
+          o.order_number,
+          o.guest_name,
+          o.guest_phone,
+          o.guest_email,
+          r.room_number,
+          o.check_in_date,
+          o.check_out_date,
+          o.total_price,
+          o.status,
+          o.payment_status,
+          o.created_at
+        FROM orders o
+        LEFT JOIN rooms r ON o.room_id = r.id
+        WHERE 1=1
+      `;
+
+      const params = [];
+
+      if (filters.startDate) {
+        query += ` AND o.check_in_date >= ?`;
+        params.push(filters.startDate);
+      }
+
+      if (filters.endDate) {
+        query += ` AND o.check_out_date &lt;= ?`;
+        params.push(filters.endDate);
+      }
+
+      if (filters.status) {
+        query += ` AND o.status = ?`;
+        params.push(filters.status);
+      }
+
+      query += ` ORDER BY o.created_at DESC`;
+
+      const orders = this.db.prepare(query).all(...params);
+
+      // 生成文件
+      if (format === 'excel') {
+        return await this._generateExcel(orders, 'orders', [
+          { header: '订单ID', key: 'id', width: 10 },
+          { header: '订单号', key: 'order_number', width: 20 },
+          { header: '客人姓名', key: 'guest_name', width: 15 },
+          { header: '电话', key: 'guest_phone', width: 15 },
+          { header: '邮箱', key: 'guest_email', width: 25 },
+          { header: '房间号', key: 'room_number', width: 10 },
+          { header: '入住日期', key: 'check_in_date', width: 15 },
+          { header: '离店日期', key: 'check_out_date', width: 15 },
+          { header: '总价', key: 'total_price', width: 12 },
+          { header: '订单状态', key: 'status', width: 12 },
+          { header: '支付状态', key: 'payment_status', width: 12 },
+          { header: '创建时间', key: 'created_at', width: 20 }
+        ]);
+      } else {
+        return await this._generateCSV(orders, 'orders');
+      }
+    } catch (error) {
+      console.error('[Export] Export orders failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 导出财务报表
+   * @param {string} startDate - 开始日期
+   * @param {string} endDate - 结束日期
+   * @param {string} format - 导出格式
+   */
+  async exportFinancialReport(startDate, endDate, format = 'excel') {
+    try {
+      const report = this.db.prepare(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as total_orders,
+          SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_orders,
+          SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
+          SUM(CASE WHEN payment_status = 'paid' THEN total_price ELSE 0 END) as revenue,
+          SUM(CASE WHEN payment_status = 'pending' THEN total_price ELSE 0 END) as pending_amount
+        FROM orders
+        WHERE DATE(created_at) BETWEEN ? AND ?
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+      `).all(startDate, endDate);
+
+      if (format === 'excel') {
+        return await this._generateExcel(report, 'financial_report', [
+          { header: '日期', key: 'date', width: 15 },
+          { header: '总订单数', key: 'total_orders', width: 12 },
+          { header: '已确认', key: 'confirmed_orders', width: 12 },
+          { header: '已取消', key: 'cancelled_orders', width: 12 },
+          { header: '实收金额', key: 'revenue', width: 15 },
+          { header: '待收金额', key: 'pending_amount', width: 15 }
+        ]);
+      } else {
+        return await this._generateCSV(report, 'financial_report');
+      }
+    } catch (error) {
+      console.error('[Export] Export financial report failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 导出房间入住率报表
+   * @param {string} startDate - 开始日期
+   * @param {string} endDate - 结束日期
+   * @param {string} format - 导出格式
+   */
+  async exportOccupancyReport(startDate, endDate, format = 'excel') {
+    try {
+      // 获取所有房间
+      const rooms = this.db.prepare('SELECT id, room_number FROM rooms').all();
+      const totalRooms = rooms.length;
+
+      // 按日期统计入住率
+      const report = this.db.prepare(`
+        WITH RECURSIVE dates(date) AS (
+          SELECT date(?)
+          UNION ALL
+          SELECT date(date, '+1 day')
+          FROM dates
+          WHERE date &lt; date(?)
+        )
+        SELECT 
+          d.date,
+          COUNT(DISTINCT o.room_id) as occupied_rooms,
+          ROUND(COUNT(DISTINCT o.room_id) * 100.0 / ?, 2) as occupancy_rate
+        FROM dates d
+        LEFT JOIN orders o ON 
+          o.check_in_date &lt;= d.date 
+          AND o.check_out_date > d.date
+          AND o.status IN ('confirmed', 'checked_in')
+        GROUP BY d.date
+        ORDER BY d.date
+      `).all(startDate, endDate, totalRooms);
+
+      if (format === 'excel') {
+        return await this._generateExcel(report, 'occupancy_report', [
+          { header: '日期', key: 'date', width: 15 },
+          { header: '已入住房间数', key: 'occupied_rooms', width: 15 },
+          { header: '入住率(%)', key: 'occupancy_rate', width: 15 }
+        ]);
+      } else {
+        return await this._generateCSV(report, 'occupancy_report');
+      }
+    } catch (error) {
+      console.error('[Export] Export occupancy report failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 导出清洁任务报表
+   * @param {string} startDate - 开始日期
+   * @param {string} endDate - 结束日期
+   * @param {string} format - 导出格式
+   */
+  async exportCleaningReport(startDate, endDate, format = 'excel') {
+    try {
+      const report = this.db.prepare(`
+        SELECT 
+          ct.id,
+          r.room_number,
+          ct.task_type,
+          ct.priority,
+          ct.status,
+          ct.assigned_to,
+          ct.scheduled_time,
+          ct.completed_time,
+          ct.notes,
+          ct.created_at
+        FROM cleaning_tasks ct
+        LEFT JOIN rooms r ON ct.room_id = r.id
+        WHERE DATE(ct.scheduled_time) BETWEEN ? AND ?
+        ORDER BY ct.scheduled_time DESC
+      `).all(startDate, endDate);
+
+      if (format === 'excel') {
+        return await this._generateExcel(report, 'cleaning_report', [
+          { header: '任务ID', key: 'id', width: 10 },
+          { header: '房间号', key: 'room_number', width: 10 },
+          { header: '任务类型', key: 'task_type', width: 12 },
+          { header: '优先级', key: 'priority', width: 10 },
+          { header: '状态', key: 'status', width: 12 },
+          { header: '清洁员', key: 'assigned_to', width: 15 },
+          { header: '计划时间', key: 'scheduled_time', width: 20 },
+          { header: '完成时间', key: 'completed_time', width: 20 },
+          { header: '备注', key: 'notes', width: 30 },
+          { header: '创建时间', key: 'created_at', width: 20 }
+        ]);
+      } else {
+        return await this._generateCSV(report, 'cleaning_report');
+      }
+    } catch (error) {
+      console.error('[Export] Export cleaning report failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 生成Excel文件
+   * @private
+   */
+  async _generateExcel(data, filename, columns) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+
+    // 设置列
+    worksheet.columns = columns;
+
+    // 添加数据
+    worksheet.addRows(data);
+
+    // 样式设置
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // 生成文件
+    const filepath = path.join(this.exportDir, `${filename}_${Date.now()}.xlsx`);
+    await workbook.xlsx.writeFile(filepath);
+
+    return {
+      success: true,
+      filepath,
+      filename: path.basename(filepath),
+      rows: data.length
+    };
+  }
+
+  /**
+   * 生成CSV文件
+   * @private
+   */
+  async _generateCSV(data, filename) {
+    if (data.length === 0) {
+      throw new Error('No data to export');
+    }
+
+    // 获取列名
+    const headers = Object.keys(data[0]);
+
+    // 生成CSV内容
+    let csv = headers.join(',') + '\n';
+    data.forEach(row => {
+      const values = headers.map(header => {
+        const value = row[header];
+        // 处理包含逗号的值
+        if (typeof value === 'string' &amp;&amp; value.includes(',')) {
+          return `"${value}"`;
+        }
+        return value ?? '';
+      });
+      csv += values.join(',') + '\n';
+    });
+
+    // 写入文件
+    const filepath = path.join(this.exportDir, `${filename}_${Date.now()}.csv`);
+    fs.writeFileSync(filepath, csv, 'utf8');
+
+    return {
+      success: true,
+      filepath,
+      filename: path.basename(filepath),
+      rows: data.length
+    };
+  }
+
+  /**
+   * 获取导出文件列表
+   */
+  listExportFiles() {
+    try {
+      const files = fs.readdirSync(this.exportDir);
+      return files.map(filename => {
+        const filepath = path.join(this.exportDir, filename);
+        const stats = fs.statSync(filepath);
+        return {
+          filename,
+          filepath,
+          size: stats.size,
+          createdAt: stats.birthtime
+        };
+      });
+    } catch (error) {
+      console.error('[Export] List export files failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 删除导出文件
+   */
+  deleteExportFile(filename) {
+    try {
+      const filepath = path.join(this.exportDir, filename);
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+        return { success: true };
+      } else {
+        throw new Error('File not found');
+      }
+    } catch (error) {
+      console.error('[Export] Delete export file failed:', error.message);
+      throw error;
+    }
+  }
+}
+
+module.exports = ExportService;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

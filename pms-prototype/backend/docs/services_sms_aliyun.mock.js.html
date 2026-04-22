@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: services/sms/aliyun.mock.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: services/sms/aliyun.mock.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 阿里云短信Mock服务
+ */
+const mockData = require('../../utils/mockData');
+
+class AliyunSmsMockService {
+  constructor() {
+    console.log('🎭 使用Mock阿里云短信服务');
+    // 存储已发送的验证码（开发环境可查看）
+    this.sentCodes = new Map();
+  }
+
+  /**
+   * 发送验证码（Mock）
+   */
+  async sendVerifyCode(phone, code) {
+    console.log(`📱 Mock发送验证码到 ${phone}: ${code}`);
+    
+    // 模拟网络延迟
+    await this.delay(300);
+
+    // 保存验证码（方便开发时查看）
+    this.sentCodes.set(phone, {
+      code,
+      sentAt: Date.now()
+    });
+
+    // 在控制台显示验证码（开发环境）
+    console.log(`✅ 验证码已发送: ${code} (${phone})`);
+
+    // 模拟98%成功率
+    if (Math.random() &lt; 0.98) {
+      return {
+        success: true,
+        mockData: {
+          code, // Mock环境返回验证码方便测试
+          phone,
+          provider: 'aliyun_mock'
+        }
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Mock发送失败：网络异常'
+      };
+    }
+  }
+
+  /**
+   * 发送订单通知（Mock）
+   */
+  async sendOrderNotify(phone, orderData) {
+    console.log(`📱 Mock发送订单通知到 ${phone}:`, orderData);
+    
+    await this.delay(300);
+
+    console.log(`✅ 订单通知已发送: 订单${orderData.orderNo} (${phone})`);
+
+    return {
+      success: true,
+      mockData: {
+        phone,
+        orderNo: orderData.orderNo,
+        provider: 'aliyun_mock'
+      }
+    };
+  }
+
+  /**
+   * 获取最近发送的验证码（仅Mock环境）
+   */
+  getLastCode(phone) {
+    const data = this.sentCodes.get(phone);
+    return data ? data.code : null;
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+module.exports = new AliyunSmsMockService();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

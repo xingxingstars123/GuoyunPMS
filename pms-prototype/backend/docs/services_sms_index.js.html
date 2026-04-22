@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: services/sms/index.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: services/sms/index.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 短信服务统一入口
+ */
+const config = require('../../config/integration');
+
+// 根据配置选择真实服务或Mock服务
+const aliyunSms = config.useMock 
+  ? require('./aliyun.mock') 
+  : null; // 真实服务暂未实现
+
+class SmsService {
+  constructor() {
+    this.client = aliyunSms;
+    this.useMock = config.useMock;
+  }
+
+  /**
+   * 发送验证码
+   */
+  async sendVerifyCode(phone) {
+    try {
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const result = await this.client.sendVerifyCode(phone, code);
+
+      if (result.success) {
+        // Mock环境下也保存验证码
+        await this.saveVerifyCode(phone, code, 300);
+
+        return {
+          success: true,
+          // Mock环境返回验证码方便测试
+          ...(this.useMock &amp;&amp; { mockCode: code })
+        };
+      } else {
+        return result;
+      }
+    } catch (error) {
+      console.error('发送验证码失败:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 验证验证码
+   */
+  async verifyCode(phone, code) {
+    try {
+      const savedCode = await this.getVerifyCode(phone);
+      
+      if (!savedCode) {
+        return {
+          success: false,
+          error: '验证码已过期'
+        };
+      }
+
+      if (savedCode !== code) {
+        return {
+          success: false,
+          error: '验证码错误'
+        };
+      }
+
+      await this.deleteVerifyCode(phone);
+
+      return { success: true };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * 发送订单通知
+   */
+  async sendOrderNotify(phone, orderData) {
+    try {
+      const result = await this.client.sendOrderNotify(phone, orderData);
+      return result;
+    } catch (error) {
+      console.error('发送订单通知失败:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  // 简单的内存存储（实际应使用Redis）
+  verifyCodeStore = new Map();
+
+  async saveVerifyCode(phone, code, ttl) {
+    this.verifyCodeStore.set(phone, {
+      code,
+      expiresAt: Date.now() + ttl * 1000
+    });
+    console.log(`保存验证码: ${phone} -> ${code} (${ttl}秒)`);
+  }
+
+  async getVerifyCode(phone) {
+    const data = this.verifyCodeStore.get(phone);
+    if (!data) return null;
+    
+    // 检查是否过期
+    if (Date.now() > data.expiresAt) {
+      this.verifyCodeStore.delete(phone);
+      return null;
+    }
+    
+    return data.code;
+  }
+
+  async deleteVerifyCode(phone) {
+    this.verifyCodeStore.delete(phone);
+    console.log(`删除验证码: ${phone}`);
+  }
+}
+
+module.exports = new SmsService();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

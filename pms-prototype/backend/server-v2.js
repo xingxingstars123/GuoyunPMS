@@ -30,6 +30,9 @@ const RoomService = require('./services/RoomService');
 const cacheService = require('./services/CacheService');
 const { wsService, notifyAdmins } = require('./services/WebSocketService');
 
+// Swagger API文档
+const { swaggerUi, swaggerDocument } = require('./swagger');
+
 // 路由
 const authRoutes = require('./routes/auth');
 const otaRoutes = require('./routes/ota');
@@ -96,6 +99,15 @@ app.get('/api/health', asyncHandler(async (req, res) => {
 app.get('/metrics', asyncHandler(async (req, res) => {
   res.set('Content-Type', 'text/plain');
   res.send(await getMetrics());
+}));
+
+/**
+ * Swagger API文档
+ */
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', swaggerUi.setup(swaggerDocument, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'GuoyunPMS API Documentation'
 }));
 
 /**

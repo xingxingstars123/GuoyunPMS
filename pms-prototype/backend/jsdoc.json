@@ -1,0 +1,30 @@
+{
+  "source": {
+    "include": [
+      "services/",
+      "controllers/",
+      "middleware/",
+      "utils/"
+    ],
+    "includePattern": ".+\\.js(doc|x)?$",
+    "excludePattern": "(node_modules/|coverage/|tests/)"
+  },
+  "opts": {
+    "destination": "./docs",
+    "recurse": true,
+    "readme": "../README.md",
+    "encoding": "utf8"
+  },
+  "plugins": ["plugins/markdown"],
+  "templates": {
+    "cleverLinks": false,
+    "monospaceLinks": false,
+    "default": {
+      "outputSourceFiles": true
+    }
+  },
+  "tags": {
+    "allowUnknownTags": true,
+    "dictionaries": ["jsdoc", "closure"]
+  }
+}

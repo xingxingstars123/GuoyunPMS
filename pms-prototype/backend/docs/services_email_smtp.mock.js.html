@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: services/email/smtp.mock.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: services/email/smtp.mock.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 邮件服务Mock
+ */
+const mockData = require('../../utils/mockData');
+
+class EmailMockService {
+  constructor() {
+    console.log('🎭 使用Mock邮件服务');
+    this.sentEmails = [];
+  }
+
+  /**
+   * 发送邮件（Mock）
+   */
+  async sendEmail(to, subject, html) {
+    console.log(`📧 Mock发送邮件到 ${to}`);
+    console.log(`主题: ${subject}`);
+    console.log(`内容预览: ${html.substring(0, 100)}...`);
+    
+    await this.delay(400);
+
+    const emailId = mockData.generateId('email_id');
+    
+    this.sentEmails.push({
+      id: emailId,
+      to,
+      subject,
+      html,
+      sentAt: Date.now()
+    });
+
+    console.log(`✅ 邮件已发送 (ID: ${emailId})`);
+
+    if (Math.random() &lt; 0.95) {
+      return {
+        success: true,
+        messageId: emailId
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Mock发送失败：SMTP连接超时'
+      };
+    }
+  }
+
+  /**
+   * 发送订单确认邮件（Mock）
+   */
+  async sendOrderConfirmation(email, orderData) {
+    const html = `
+      &lt;h2>订单确认&lt;/h2>
+      &lt;p>尊敬的用户，您的订单已确认：&lt;/p>
+      &lt;ul>
+        &lt;li>订单号：${orderData.orderNo}&lt;/li>
+        &lt;li>房间：${orderData.roomName}&lt;/li>
+        &lt;li>金额：¥${orderData.amount}&lt;/li>
+        &lt;li>入住日期：${orderData.checkInDate}&lt;/li>
+        &lt;li>退房日期：${orderData.checkOutDate}&lt;/li>
+      &lt;/ul>
+      &lt;p>感谢您的选择！&lt;/p>
+    `;
+
+    return await this.sendEmail(email, '订单确认通知', html);
+  }
+
+  /**
+   * 发送密码重置邮件（Mock）
+   */
+  async sendPasswordReset(email, resetToken) {
+    const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+    
+    const html = `
+      &lt;h2>密码重置&lt;/h2>
+      &lt;p>您请求重置密码，请点击以下链接：&lt;/p>
+      &lt;p>&lt;a href="${resetUrl}">${resetUrl}&lt;/a>&lt;/p>
+      &lt;p>此链接30分钟内有效。&lt;/p>
+      &lt;p>如果这不是您的操作，请忽略此邮件。&lt;/p>
+    `;
+
+    return await this.sendEmail(email, '密码重置请求', html);
+  }
+
+  /**
+   * 获取最近发送的邮件（仅Mock环境）
+   */
+  getRecentEmails(limit = 10) {
+    return this.sentEmails.slice(-limit);
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+module.exports = new EmailMockService();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

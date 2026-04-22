@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/BulkOperationController.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/BulkOperationController.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 批量操作控制器
+ */
+
+const BulkOperationService = require('../services/BulkOperationService');
+
+class BulkOperationController {
+  constructor() {
+    this.bulkOpService = new BulkOperationService();
+  }
+
+  /**
+   * POST /api/bulk/rooms/status - 批量更新房间状态
+   */
+  async updateRoomStatus(req, res) {
+    try {
+      const { roomIds, status } = req.body;
+      
+      if (!roomIds || !status) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: roomIds, status' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkUpdateRoomStatus(roomIds, status);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/rooms/prices - 批量更新房间价格
+   */
+  async updateRoomPrices(req, res) {
+    try {
+      const { updates } = req.body;
+      
+      if (!updates || !Array.isArray(updates)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required field: updates (array)' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkUpdateRoomPrices(updates);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/cleaning/create - 批量创建清洁任务
+   */
+  async createCleaningTasks(req, res) {
+    try {
+      const { roomIds, taskConfig } = req.body;
+      
+      if (!roomIds || !taskConfig) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: roomIds, taskConfig' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkCreateCleaningTasks(roomIds, taskConfig);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/cleaning/status - 批量更新清洁任务状态
+   */
+  async updateCleaningTaskStatus(req, res) {
+    try {
+      const { taskIds, status } = req.body;
+      
+      if (!taskIds || !status) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: taskIds, status' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkUpdateCleaningTaskStatus(taskIds, status);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/orders/status - 批量更新订单状态
+   */
+  async updateOrderStatus(req, res) {
+    try {
+      const { orderIds, status } = req.body;
+      
+      if (!orderIds || !status) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: orderIds, status' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkUpdateOrderStatus(orderIds, status);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/orders/assign - 批量分配房间
+   */
+  async assignRooms(req, res) {
+    try {
+      const { orderIds } = req.body;
+      
+      if (!orderIds) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required field: orderIds' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkAssignRooms(orderIds);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * DELETE /api/bulk/orders - 批量删除订单
+   */
+  async deleteOrders(req, res) {
+    try {
+      const { orderIds } = req.body;
+      
+      if (!orderIds) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required field: orderIds' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkDeleteOrders(orderIds);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/rooms/import - 批量导入房间
+   */
+  async importRooms(req, res) {
+    try {
+      const { rooms } = req.body;
+      
+      if (!rooms || !Array.isArray(rooms)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required field: rooms (array)' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkImportRooms(rooms);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/orders/import - 批量导入订单
+   */
+  async importOrders(req, res) {
+    try {
+      const { orders } = req.body;
+      
+      if (!orders || !Array.isArray(orders)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required field: orders (array)' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkImportOrders(orders);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/bulk/rooms/attributes - 批量更新房间属性
+   */
+  async updateRoomAttributes(req, res) {
+    try {
+      const { updates } = req.body;
+      
+      if (!updates || !Array.isArray(updates)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required field: updates (array)' 
+        });
+      }
+
+      const result = this.bulkOpService.bulkUpdateRoomAttributes(updates);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+}
+
+module.exports = new BulkOperationController();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

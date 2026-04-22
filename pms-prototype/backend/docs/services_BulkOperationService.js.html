@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: services/BulkOperationService.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: services/BulkOperationService.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 批量操作服务
+ * 支持批量更新房态、价格、清洁任务等
+ */
+
+const Database = require('better-sqlite3');
+const path = require('path');
+
+class BulkOperationService {
+  constructor() {
+    this.db = new Database(path.join(__dirname, '../database/pms.db'));
+  }
+
+  /**
+   * 批量更新房间状态
+   * @param {Array} roomIds - 房间ID列表
+   * @param {string} status - 新状态 (available/occupied/maintenance/cleaning)
+   */
+  bulkUpdateRoomStatus(roomIds, status) {
+    try {
+      const validStatuses = ['available', 'occupied', 'maintenance', 'cleaning'];
+      if (!validStatuses.includes(status)) {
+        throw new Error(`Invalid status: ${status}`);
+      }
+
+      const placeholders = roomIds.map(() => '?').join(',');
+      const stmt = this.db.prepare(`
+        UPDATE rooms 
+        SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id IN (${placeholders})
+      `);
+
+      const result = stmt.run(status, ...roomIds);
+
+      return {
+        success: true,
+        affected: result.changes,
+        status,
+        roomIds
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk update room status failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量更新房间价格
+   * @param {Array} updates - 更新列表 [{roomId, basePrice}]
+   */
+  bulkUpdateRoomPrices(updates) {
+    try {
+      const stmt = this.db.prepare(`
+        UPDATE rooms 
+        SET base_price = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `);
+
+      const transaction = this.db.transaction((items) => {
+        const results = [];
+        for (const item of items) {
+          const result = stmt.run(item.basePrice, item.roomId);
+          results.push({
+            roomId: item.roomId,
+            basePrice: item.basePrice,
+            affected: result.changes
+          });
+        }
+        return results;
+      });
+
+      const results = transaction(updates);
+      const totalAffected = results.reduce((sum, r) => sum + r.affected, 0);
+
+      return {
+        success: true,
+        affected: totalAffected,
+        details: results
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk update room prices failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量创建清洁任务
+   * @param {Array} roomIds - 房间ID列表
+   * @param {Object} taskConfig - 任务配置 {taskType, priority, scheduledTime, assignedTo}
+   */
+  bulkCreateCleaningTasks(roomIds, taskConfig) {
+    try {
+      const { taskType, priority, scheduledTime, assignedTo } = taskConfig;
+
+      const stmt = this.db.prepare(`
+        INSERT INTO cleaning_tasks (room_id, task_type, priority, status, assigned_to, scheduled_time, created_at)
+        VALUES (?, ?, ?, 'pending', ?, ?, CURRENT_TIMESTAMP)
+      `);
+
+      const transaction = this.db.transaction((rooms) => {
+        const results = [];
+        for (const roomId of rooms) {
+          const result = stmt.run(roomId, taskType, priority, assignedTo, scheduledTime);
+          results.push({
+            roomId,
+            taskId: result.lastInsertRowid
+          });
+        }
+        return results;
+      });
+
+      const results = transaction(roomIds);
+
+      return {
+        success: true,
+        created: results.length,
+        tasks: results
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk create cleaning tasks failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量更新清洁任务状态
+   * @param {Array} taskIds - 任务ID列表
+   * @param {string} status - 新状态 (pending/in_progress/completed/cancelled)
+   */
+  bulkUpdateCleaningTaskStatus(taskIds, status) {
+    try {
+      const validStatuses = ['pending', 'in_progress', 'completed', 'cancelled'];
+      if (!validStatuses.includes(status)) {
+        throw new Error(`Invalid status: ${status}`);
+      }
+
+      const placeholders = taskIds.map(() => '?').join(',');
+      
+      let updateFields = 'status = ?, updated_at = CURRENT_TIMESTAMP';
+      const params = [status];
+
+      if (status === 'completed') {
+        updateFields += ', completed_time = CURRENT_TIMESTAMP';
+      }
+
+      const stmt = this.db.prepare(`
+        UPDATE cleaning_tasks 
+        SET ${updateFields}
+        WHERE id IN (${placeholders})
+      `);
+
+      const result = stmt.run(...params, ...taskIds);
+
+      return {
+        success: true,
+        affected: result.changes,
+        status,
+        taskIds
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk update cleaning task status failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量更新订单状态
+   * @param {Array} orderIds - 订单ID列表
+   * @param {string} status - 新状态 (pending/confirmed/checked_in/checked_out/cancelled)
+   */
+  bulkUpdateOrderStatus(orderIds, status) {
+    try {
+      const validStatuses = ['pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled'];
+      if (!validStatuses.includes(status)) {
+        throw new Error(`Invalid status: ${status}`);
+      }
+
+      const placeholders = orderIds.map(() => '?').join(',');
+      const stmt = this.db.prepare(`
+        UPDATE orders 
+        SET status = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id IN (${placeholders})
+      `);
+
+      const result = stmt.run(status, ...orderIds);
+
+      return {
+        success: true,
+        affected: result.changes,
+        status,
+        orderIds
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk update order status failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量删除订单 (软删除)
+   * @param {Array} orderIds - 订单ID列表
+   */
+  bulkDeleteOrders(orderIds) {
+    try {
+      const placeholders = orderIds.map(() => '?').join(',');
+      const stmt = this.db.prepare(`
+        UPDATE orders 
+        SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+        WHERE id IN (${placeholders})
+      `);
+
+      const result = stmt.run(...orderIds);
+
+      return {
+        success: true,
+        affected: result.changes,
+        orderIds
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk delete orders failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量分配房间 (自动分配空闲房间给待分配订单)
+   * @param {Array} orderIds - 订单ID列表
+   */
+  bulkAssignRooms(orderIds) {
+    try {
+      const transaction = this.db.transaction((ids) => {
+        const results = [];
+
+        for (const orderId of ids) {
+          // 获取订单信息
+          const order = this.db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId);
+          if (!order || order.room_id) {
+            results.push({ orderId, success: false, reason: 'Order not found or already assigned' });
+            continue;
+          }
+
+          // 查找可用房间
+          const availableRoom = this.db.prepare(`
+            SELECT id FROM rooms
+            WHERE status = 'available'
+              AND id NOT IN (
+                SELECT DISTINCT room_id FROM orders
+                WHERE status IN ('confirmed', 'checked_in')
+                  AND check_in_date &lt; ?
+                  AND check_out_date > ?
+                  AND room_id IS NOT NULL
+              )
+            LIMIT 1
+          `).get(order.check_out_date, order.check_in_date);
+
+          if (!availableRoom) {
+            results.push({ orderId, success: false, reason: 'No available room' });
+            continue;
+          }
+
+          // 分配房间
+          this.db.prepare('UPDATE orders SET room_id = ? WHERE id = ?')
+            .run(availableRoom.id, orderId);
+
+          results.push({
+            orderId,
+            roomId: availableRoom.id,
+            success: true
+          });
+        }
+
+        return results;
+      });
+
+      const results = transaction(orderIds);
+      const successCount = results.filter(r => r.success).length;
+
+      return {
+        success: true,
+        assigned: successCount,
+        failed: results.length - successCount,
+        details: results
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk assign rooms failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量导入房间数据
+   * @param {Array} rooms - 房间数据列表 [{propertyId, roomNumber, roomType, basePrice}]
+   */
+  bulkImportRooms(rooms) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO rooms (property_id, room_number, room_type, base_price, status, created_at)
+        VALUES (?, ?, ?, ?, 'available', CURRENT_TIMESTAMP)
+      `);
+
+      const transaction = this.db.transaction((items) => {
+        const results = [];
+        for (const room of items) {
+          try {
+            const result = stmt.run(
+              room.propertyId,
+              room.roomNumber,
+              room.roomType || 'standard',
+              room.basePrice || 200
+            );
+            results.push({
+              roomNumber: room.roomNumber,
+              roomId: result.lastInsertRowid,
+              success: true
+            });
+          } catch (err) {
+            results.push({
+              roomNumber: room.roomNumber,
+              success: false,
+              error: err.message
+            });
+          }
+        }
+        return results;
+      });
+
+      const results = transaction(rooms);
+      const successCount = results.filter(r => r.success).length;
+
+      return {
+        success: true,
+        imported: successCount,
+        failed: results.length - successCount,
+        details: results
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk import rooms failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量导入订单数据
+   * @param {Array} orders - 订单数据列表
+   */
+  bulkImportOrders(orders) {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO orders (
+          order_number, guest_name, guest_phone, guest_email,
+          room_id, check_in_date, check_out_date, total_price,
+          status, payment_status, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+
+      const transaction = this.db.transaction((items) => {
+        const results = [];
+        for (const order of items) {
+          try {
+            const result = stmt.run(
+              order.orderNumber,
+              order.guestName,
+              order.guestPhone,
+              order.guestEmail,
+              order.roomId,
+              order.checkInDate,
+              order.checkOutDate,
+              order.totalPrice,
+              order.status || 'pending',
+              order.paymentStatus || 'pending'
+            );
+            results.push({
+              orderNumber: order.orderNumber,
+              orderId: result.lastInsertRowid,
+              success: true
+            });
+          } catch (err) {
+            results.push({
+              orderNumber: order.orderNumber,
+              success: false,
+              error: err.message
+            });
+          }
+        }
+        return results;
+      });
+
+      const results = transaction(orders);
+      const successCount = results.filter(r => r.success).length;
+
+      return {
+        success: true,
+        imported: successCount,
+        failed: results.length - successCount,
+        details: results
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk import orders failed:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * 批量更新房间属性 (自定义字段)
+   * @param {Array} updates - 更新列表 [{roomId, fields: {key: value}}]
+   */
+  bulkUpdateRoomAttributes(updates) {
+    try {
+      const transaction = this.db.transaction((items) => {
+        const results = [];
+
+        for (const item of items) {
+          const fields = Object.keys(item.fields);
+          const values = Object.values(item.fields);
+          
+          // 构建动态UPDATE语句
+          const setClause = fields.map(f => `${f} = ?`).join(', ');
+          const stmt = this.db.prepare(`
+            UPDATE rooms 
+            SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+          `);
+
+          const result = stmt.run(...values, item.roomId);
+          results.push({
+            roomId: item.roomId,
+            affected: result.changes,
+            fields: item.fields
+          });
+        }
+
+        return results;
+      });
+
+      const results = transaction(updates);
+      const totalAffected = results.reduce((sum, r) => sum + r.affected, 0);
+
+      return {
+        success: true,
+        affected: totalAffected,
+        details: results
+      };
+    } catch (error) {
+      console.error('[BulkOp] Bulk update room attributes failed:', error.message);
+      throw error;
+    }
+  }
+}
+
+module.exports = BulkOperationService;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

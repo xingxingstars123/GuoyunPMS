@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/AuthController.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/AuthController.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 认证控制器
+ * 处理用户登录、注册等认证相关请求
+ */
+
+const AuthService = require('../services/AuthService');
+
+class AuthController {
+  /**
+   * 用户登录
+   * POST /api/auth/login
+   */
+  static async login(req, res) {
+    try {
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          error: '用户名和密码不能为空'
+        });
+      }
+
+      const result = await AuthService.login(username, password);
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      res.status(401).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 用户注册
+   * POST /api/auth/register
+   * 需要管理员权限
+   */
+  static async register(req, res) {
+    try {
+      const { username, password, role } = req.body;
+
+      const user = await AuthService.register(username, password, role);
+
+      res.status(201).json({
+        success: true,
+        data: user
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 获取当前用户信息
+   * GET /api/auth/me
+   */
+  static async getCurrentUser(req, res) {
+    try {
+      const user = await AuthService.getUserInfo(req.user.id);
+
+      res.json({
+        success: true,
+        data: user
+      });
+    } catch (err) {
+      res.status(404).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 修改密码
+   * POST /api/auth/change-password
+   */
+  static async changePassword(req, res) {
+    try {
+      const { oldPassword, newPassword } = req.body;
+
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({
+          success: false,
+          error: '旧密码和新密码不能为空'
+        });
+      }
+
+      await AuthService.changePassword(req.user.id, oldPassword, newPassword);
+
+      res.json({
+        success: true,
+        message: '密码修改成功'
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 刷新token
+   * POST /api/auth/refresh
+   */
+  static async refreshToken(req, res) {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        return res.status(400).json({
+          success: false,
+          error: 'Token不能为空'
+        });
+      }
+
+      const result = await AuthService.refreshToken(token);
+
+      res.json({
+        success: true,
+        data: result
+      });
+    } catch (err) {
+      res.status(401).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 列出所有用户
+   * GET /api/auth/users
+   * 需要管理员权限
+   */
+  static async listUsers(req, res) {
+    try {
+      const users = await AuthService.listUsers();
+
+      res.json({
+        success: true,
+        data: users
+      });
+    } catch (err) {
+      res.status(500).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 更新用户角色
+   * PUT /api/auth/users/:id/role
+   * 需要管理员权限
+   */
+  static async updateUserRole(req, res) {
+    try {
+      const userId = parseInt(req.params.id);
+      const { role } = req.body;
+
+      if (!role) {
+        return res.status(400).json({
+          success: false,
+          error: '角色不能为空'
+        });
+      }
+
+      await AuthService.updateUserRole(userId, role);
+
+      res.json({
+        success: true,
+        message: '角色更新成功'
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 重置用户密码
+   * POST /api/auth/users/:id/reset-password
+   * 需要管理员权限
+   */
+  static async resetPassword(req, res) {
+    try {
+      const userId = parseInt(req.params.id);
+      const { newPassword } = req.body;
+
+      if (!newPassword) {
+        return res.status(400).json({
+          success: false,
+          error: '新密码不能为空'
+        });
+      }
+
+      await AuthService.resetPassword(userId, newPassword);
+
+      res.json({
+        success: true,
+        message: '密码重置成功'
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+
+  /**
+   * 删除用户
+   * DELETE /api/auth/users/:id
+   * 需要管理员权限
+   */
+  static async deleteUser(req, res) {
+    try {
+      const userId = parseInt(req.params.id);
+
+      // 不能删除自己
+      if (userId === req.user.id) {
+        return res.status(400).json({
+          success: false,
+          error: '不能删除自己的账户'
+        });
+      }
+
+      await AuthService.deleteUser(userId);
+
+      res.json({
+        success: true,
+        message: '用户删除成功'
+      });
+    } catch (err) {
+      res.status(400).json({
+        success: false,
+        error: err.message
+      });
+    }
+  }
+}
+
+module.exports = AuthController;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

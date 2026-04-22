@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/ExportController.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/ExportController.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 数据导出控制器
+ */
+
+const ExportService = require('../services/ExportService');
+const path = require('path');
+
+class ExportController {
+  constructor() {
+    this.exportService = new ExportService();
+  }
+
+  /**
+   * POST /api/export/orders - 导出订单数据
+   */
+  async exportOrders(req, res) {
+    try {
+      const { filters, format } = req.body;
+      const result = await this.exportService.exportOrders(filters, format);
+      
+      // 返回下载链接
+      res.json({
+        success: true,
+        ...result,
+        downloadUrl: `/api/export/download/${result.filename}`
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/export/financial - 导出财务报表
+   */
+  async exportFinancialReport(req, res) {
+    try {
+      const { startDate, endDate, format } = req.body;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: startDate, endDate' 
+        });
+      }
+
+      const result = await this.exportService.exportFinancialReport(startDate, endDate, format);
+      
+      res.json({
+        success: true,
+        ...result,
+        downloadUrl: `/api/export/download/${result.filename}`
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/export/occupancy - 导出入住率报表
+   */
+  async exportOccupancyReport(req, res) {
+    try {
+      const { startDate, endDate, format } = req.body;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: startDate, endDate' 
+        });
+      }
+
+      const result = await this.exportService.exportOccupancyReport(startDate, endDate, format);
+      
+      res.json({
+        success: true,
+        ...result,
+        downloadUrl: `/api/export/download/${result.filename}`
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * POST /api/export/cleaning - 导出清洁任务报表
+   */
+  async exportCleaningReport(req, res) {
+    try {
+      const { startDate, endDate, format } = req.body;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Missing required fields: startDate, endDate' 
+        });
+      }
+
+      const result = await this.exportService.exportCleaningReport(startDate, endDate, format);
+      
+      res.json({
+        success: true,
+        ...result,
+        downloadUrl: `/api/export/download/${result.filename}`
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * GET /api/export/files - 获取导出文件列表
+   */
+  async listFiles(req, res) {
+    try {
+      const files = this.exportService.listExportFiles();
+      res.json({ success: true, data: files });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * GET /api/export/download/:filename - 下载导出文件
+   */
+  async downloadFile(req, res) {
+    try {
+      const { filename } = req.params;
+      const filepath = path.join(this.exportService.exportDir, filename);
+      
+      res.download(filepath, filename, (err) => {
+        if (err) {
+          res.status(404).json({ success: false, error: 'File not found' });
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+
+  /**
+   * DELETE /api/export/files/:filename - 删除导出文件
+   */
+  async deleteFile(req, res) {
+    try {
+      const { filename } = req.params;
+      const result = this.exportService.deleteExportFile(filename);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  }
+}
+
+module.exports = new ExportController();
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

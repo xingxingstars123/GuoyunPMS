@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: middleware/monitoring.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: middleware/monitoring.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * 监控中间件
+ * 使用Prometheus收集指标
+ */
+
+const promClient = require('prom-client');
+
+// 创建Registry
+const register = new promClient.Registry();
+
+// 添加默认指标(内存、CPU等)
+promClient.collectDefaultMetrics({ register });
+
+// HTTP请求计数器
+const httpRequestCounter = new promClient.Counter({
+  name: 'http_requests_total',
+  help: 'Total number of HTTP requests',
+  labelNames: ['method', 'route', 'status_code'],
+  registers: [register]
+});
+
+// HTTP请求耗时直方图
+const httpRequestDuration = new promClient.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10], // 10ms, 50ms, 100ms, ...
+  registers: [register]
+});
+
+// 活跃订单数
+const activeOrdersGauge = new promClient.Gauge({
+  name: 'active_orders_total',
+  help: 'Number of active orders',
+  registers: [register]
+});
+
+// 可用房间数
+const availableRoomsGauge = new promClient.Gauge({
+  name: 'available_rooms_total',
+  help: 'Number of available rooms',
+  registers: [register]
+});
+
+// 数据库查询耗时
+const dbQueryDuration = new promClient.Histogram({
+  name: 'db_query_duration_seconds',
+  help: 'Database query duration in seconds',
+  labelNames: ['query_type'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register]
+});
+
+// WebSocket连接数
+const wsConnectionsGauge = new promClient.Gauge({
+  name: 'websocket_connections_total',
+  help: 'Number of active WebSocket connections',
+  registers: [register]
+});
+
+/**
+ * 监控中间件
+ */
+const monitoringMiddleware = (req, res, next) => {
+  const start = Date.now();
+
+  // 响应结束时记录指标
+  res.on('finish', () => {
+    const duration = (Date.now() - start) / 1000; // 转换为秒
+    const route = req.route?.path || req.path;
+    const statusCode = res.statusCode;
+
+    // 记录请求计数
+    httpRequestCounter.labels(req.method, route, statusCode).inc();
+
+    // 记录请求耗时
+    httpRequestDuration.labels(req.method, route, statusCode).observe(duration);
+  });
+
+  next();
+};
+
+/**
+ * 更新业务指标
+ */
+const updateBusinessMetrics = async () => {
+  try {
+    const { db } = require('../database');
+
+    // 活跃订单数
+    const activeOrders = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM orders 
+      WHERE status IN ('confirmed', 'checked_in')
+    `).get();
+    activeOrdersGauge.set(activeOrders.count);
+
+    // 可用房间数
+    const availableRooms = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM rooms 
+      WHERE status = 'available'
+    `).get();
+    availableRoomsGauge.set(availableRooms.count);
+
+  } catch (err) {
+    console.error('更新业务指标失败:', err);
+  }
+};
+
+// 每分钟更新一次业务指标
+setInterval(updateBusinessMetrics, 60000);
+
+// 立即执行一次
+updateBusinessMetrics();
+
+/**
+ * 记录数据库查询耗时
+ */
+const recordDbQuery = (queryType, duration) => {
+  dbQueryDuration.labels(queryType).observe(duration / 1000); // 转换为秒
+};
+
+/**
+ * 更新WebSocket连接数
+ */
+const updateWsConnections = (count) => {
+  wsConnectionsGauge.set(count);
+};
+
+/**
+ * 获取指标
+ */
+const getMetrics = async () => {
+  return await register.metrics();
+};
+
+/**
+ * 健康检查
+ */
+const healthCheck = async () => {
+  const health = {
+    status: 'healthy',
+    timestamp: Date.now(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    checks: {}
+  };
+
+  try {
+    // 数据库检查
+    const { db } = require('../database');
+    db.prepare('SELECT 1').get();
+    health.checks.database = { status: 'ok' };
+  } catch (err) {
+    health.checks.database = { status: 'error', error: err.message };
+    health.status = 'degraded';
+  }
+
+  // Redis检查(如果启用)
+  try {
+    const cacheService = require('../services/CacheService');
+    if (cacheService.isConnected) {
+      health.checks.redis = { status: 'ok' };
+    } else {
+      health.checks.redis = { status: 'unavailable' };
+    }
+  } catch (err) {
+    health.checks.redis = { status: 'error', error: err.message };
+  }
+
+  return health;
+};
+
+module.exports = {
+  monitoringMiddleware,
+  getMetrics,
+  healthCheck,
+  recordDbQuery,
+  updateWsConnections,
+  register
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="BusinessError.html">BusinessError</a></li><li><a href="MockDataGenerator.html">MockDataGenerator</a></li></ul><h3>Global</h3><ul><li><a href="global.html#AuthService">AuthService</a></li><li><a href="global.html#BulkOperationService">BulkOperationService</a></li><li><a href="global.html#Database">Database</a></li><li><a href="global.html#ErrorCodes">ErrorCodes</a></li><li><a href="global.html#ExcelJS">ExcelJS</a></li><li><a href="global.html#ExportService">ExportService</a></li><li><a href="global.html#OTAService">OTAService</a></li><li><a href="global.html#PERMISSIONS">PERMISSIONS</a></li><li><a href="global.html#PricingService">PricingService</a></li><li><a href="global.html#Rules">Rules</a></li><li><a href="global.html#WebSocket">WebSocket</a></li><li><a href="global.html#asyncHandler">asyncHandler</a></li><li><a href="global.html#authMiddleware">authMiddleware</a></li><li><a href="global.html#authorize">authorize</a></li><li><a href="global.html#autoCacheKey">autoCacheKey</a></li><li><a href="global.html#axios">axios</a></li><li><a href="global.html#bcrypt">bcrypt</a></li><li><a href="global.html#cacheMiddleware">cacheMiddleware</a></li><li><a href="global.html#cacheService">cacheService</a></li><li><a href="global.html#cacheable">cacheable</a></li><li><a href="global.html#config">config</a></li><li><a href="global.html#dayjs">dayjs</a></li><li><a href="global.html#errorHandler">errorHandler</a></li><li><a href="global.html#getMetrics">getMetrics</a></li><li><a href="global.html#healthCheck">healthCheck</a></li><li><a href="global.html#invalidateCache">invalidateCache</a></li><li><a href="global.html#jwt">jwt</a></li><li><a href="global.html#logError">logError</a></li><li><a href="global.html#mockData">mockData</a></li><li><a href="global.html#monitoringMiddleware">monitoringMiddleware</a></li><li><a href="global.html#notFoundHandler">notFoundHandler</a></li><li><a href="global.html#optionalAuth">optionalAuth</a></li><li><a href="global.html#promClient">promClient</a></li><li><a href="global.html#recordDbQuery">recordDbQuery</a></li><li><a href="global.html#redis">redis</a></li><li><a href="global.html#requestLogger">requestLogger</a></li><li><a href="global.html#updateBusinessMetrics">updateBusinessMetrics</a></li><li><a href="global.html#updateWsConnections">updateWsConnections</a></li><li><a href="global.html#validate">validate</a></li><li><a href="global.html#validators">validators</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Thu Apr 23 2026 01:18:27 GMT+0800 (China Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
