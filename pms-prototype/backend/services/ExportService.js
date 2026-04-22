@@ -1,255 +1,344 @@
-const XLSX = require('xlsx');
-const { db } = require('../database');
-const dayjs = require('dayjs');
+/**
+ * 数据导出服务
+ * 支持导出订单、房间、财务报表等数据为Excel/CSV格式
+ */
+
+const ExcelJS = require('exceljs');
+const Database = require('better-sqlite3');
+const path = require('path');
+const fs = require('fs');
 
 class ExportService {
-  /**
-   * 导出订单数据为Excel
-   * @param {Object} filters - 筛选条件
-   * @returns {Buffer} Excel文件缓冲区
-   */
-  static exportOrders(filters = {}) {
-    const { startDate, endDate, channel, status } = filters;
+  constructor() {
+    this.db = new Database(path.join(__dirname, '../database/pms.db'));
+    this.exportDir = path.join(__dirname, '../exports');
     
-    // 构建查询
-    let sql = `
-      SELECT 
-        o.order_no as '订单号',
-        o.channel as '渠道',
-        c.name as '客户姓名',
-        c.phone as '联系电话',
-        r.room_number as '房间号',
-        r.room_type as '房型',
-        o.check_in as '入住日期',
-        o.check_out as '退房日期',
-        o.total_price as '订单金额',
-        o.status as '状态',
-        o.created_at as '创建时间'
-      FROM orders o
-      LEFT JOIN customers c ON o.customer_id = c.id
-      LEFT JOIN rooms r ON o.room_id = r.id
-      WHERE 1=1
-    `;
-    
-    const params = [];
-    
-    if (startDate) {
-      sql += ' AND DATE(o.check_in) >= ?';
-      params.push(startDate);
+    // 确保导出目录存在
+    if (!fs.existsSync(this.exportDir)) {
+      fs.mkdirSync(this.exportDir, { recursive: true });
     }
-    
-    if (endDate) {
-      sql += ' AND DATE(o.check_out) <= ?';
-      params.push(endDate);
-    }
-    
-    if (channel) {
-      sql += ' AND o.channel = ?';
-      params.push(channel);
-    }
-    
-    if (status) {
-      sql += ' AND o.status = ?';
-      params.push(status);
-    }
-    
-    sql += ' ORDER BY o.created_at DESC';
-    
-    const orders = db.prepare(sql).all(...params);
-    
-    // 状态映射
-    const statusMap = {
-      'pending': '待确认',
-      'confirmed': '已确认',
-      'pre_arrival': '预抵',
-      'checked_in': '已入住',
-      'pre_departure': '预离',
-      'checked_out': '已退房',
-      'cancelled': '已取消'
-    };
-    
-    // 转换状态
-    const processedOrders = orders.map(order => ({
-      ...order,
-      '状态': statusMap[order['状态']] || order['状态']
-    }));
-    
-    // 创建工作簿
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(processedOrders);
-    
-    // 设置列宽
-    ws['!cols'] = [
-      { wch: 20 }, // 订单号
-      { wch: 12 }, // 渠道
-      { wch: 12 }, // 客户姓名
-      { wch: 15 }, // 联系电话
-      { wch: 10 }, // 房间号
-      { wch: 12 }, // 房型
-      { wch: 12 }, // 入住日期
-      { wch: 12 }, // 退房日期
-      { wch: 12 }, // 订单金额
-      { wch: 10 }, // 状态
-      { wch: 20 }  // 创建时间
-    ];
-    
-    XLSX.utils.book_append_sheet(wb, ws, '订单列表');
-    
-    // 添加统计工作表
-    const stats = this.getOrderStats(filters);
-    const statsWs = XLSX.utils.json_to_sheet([stats]);
-    XLSX.utils.book_append_sheet(wb, statsWs, '统计汇总');
-    
-    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
   }
-  
+
   /**
-   * 导出财务数据为Excel
-   * @param {Object} filters - 筛选条件
-   * @returns {Buffer} Excel文件缓冲区
+   * 导出订单数据
+   * @param {Object} filters - 过滤条件 {startDate, endDate, status}
+   * @param {string} format - 导出格式 (excel/csv)
    */
-  static exportFinance(filters = {}) {
-    const { year, month } = filters;
-    const currentYear = year || dayjs().year();
-    const currentMonth = month || dayjs().month() + 1;
-    
-    // 查询财务记录
-    const records = db.prepare(`
-      SELECT 
-        date as '日期',
-        type as '类型',
-        category as '类别',
-        amount as '金额',
-        description as '说明',
-        created_at as '创建时间'
-      FROM financial_records
-      WHERE strftime('%Y', date) = ?
-        AND strftime('%m', date) = ?
-      ORDER BY date DESC, created_at DESC
-    `).all(String(currentYear), String(currentMonth).padStart(2, '0'));
-    
-    // 类型映射
-    const typeMap = {
-      'income': '收入',
-      'expense': '支出'
-    };
-    
-    const categoryMap = {
-      'room_fee': '房费',
-      'deposit': '押金',
-      'other_income': '其他收入',
-      'utilities': '水电费',
-      'maintenance': '维修费',
-      'supplies': '用品采购',
-      'salary': '工资',
-      'other_expense': '其他支出'
-    };
-    
-    const processedRecords = records.map(record => ({
-      ...record,
-      '类型': typeMap[record['类型']] || record['类型'],
-      '类别': categoryMap[record['类别']] || record['类别']
-    }));
-    
-    // 创建工作簿
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(processedRecords);
-    
-    ws['!cols'] = [
-      { wch: 12 }, // 日期
-      { wch: 8 },  // 类型
-      { wch: 12 }, // 类别
-      { wch: 12 }, // 金额
-      { wch: 30 }, // 说明
-      { wch: 20 }  // 创建时间
-    ];
-    
-    XLSX.utils.book_append_sheet(wb, ws, '财务明细');
-    
-    // 添加月度汇总
-    const summary = this.getFinanceSummary(currentYear, currentMonth);
-    const summaryWs = XLSX.utils.json_to_sheet([summary]);
-    XLSX.utils.book_append_sheet(wb, summaryWs, '月度汇总');
-    
-    // 添加渠道统计
-    const channelStats = db.prepare(`
-      SELECT 
-        o.channel as '渠道',
-        COUNT(*) as '订单数',
-        SUM(o.total_price) as '总营收'
-      FROM orders o
-      WHERE strftime('%Y-%m', o.check_in) = ?
-        AND o.status != 'cancelled'
-      GROUP BY o.channel
-      ORDER BY '总营收' DESC
-    `).all(`${currentYear}-${String(currentMonth).padStart(2, '0')}`);
-    
-    const channelWs = XLSX.utils.json_to_sheet(channelStats);
-    XLSX.utils.book_append_sheet(wb, channelWs, '渠道统计');
-    
-    return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  async exportOrders(filters = {}, format = 'excel') {
+    try {
+      // 构建查询
+      let query = `
+        SELECT 
+          o.id,
+          o.order_number,
+          o.guest_name,
+          o.guest_phone,
+          o.guest_email,
+          r.room_number,
+          o.check_in_date,
+          o.check_out_date,
+          o.total_price,
+          o.status,
+          o.payment_status,
+          o.created_at
+        FROM orders o
+        LEFT JOIN rooms r ON o.room_id = r.id
+        WHERE 1=1
+      `;
+
+      const params = [];
+
+      if (filters.startDate) {
+        query += ` AND o.check_in_date >= ?`;
+        params.push(filters.startDate);
+      }
+
+      if (filters.endDate) {
+        query += ` AND o.check_out_date <= ?`;
+        params.push(filters.endDate);
+      }
+
+      if (filters.status) {
+        query += ` AND o.status = ?`;
+        params.push(filters.status);
+      }
+
+      query += ` ORDER BY o.created_at DESC`;
+
+      const orders = this.db.prepare(query).all(...params);
+
+      // 生成文件
+      if (format === 'excel') {
+        return await this._generateExcel(orders, 'orders', [
+          { header: '订单ID', key: 'id', width: 10 },
+          { header: '订单号', key: 'order_number', width: 20 },
+          { header: '客人姓名', key: 'guest_name', width: 15 },
+          { header: '电话', key: 'guest_phone', width: 15 },
+          { header: '邮箱', key: 'guest_email', width: 25 },
+          { header: '房间号', key: 'room_number', width: 10 },
+          { header: '入住日期', key: 'check_in_date', width: 15 },
+          { header: '离店日期', key: 'check_out_date', width: 15 },
+          { header: '总价', key: 'total_price', width: 12 },
+          { header: '订单状态', key: 'status', width: 12 },
+          { header: '支付状态', key: 'payment_status', width: 12 },
+          { header: '创建时间', key: 'created_at', width: 20 }
+        ]);
+      } else {
+        return await this._generateCSV(orders, 'orders');
+      }
+    } catch (error) {
+      console.error('[Export] Export orders failed:', error.message);
+      throw error;
+    }
   }
-  
+
   /**
-   * 获取订单统计
+   * 导出财务报表
+   * @param {string} startDate - 开始日期
+   * @param {string} endDate - 结束日期
+   * @param {string} format - 导出格式
    */
-  static getOrderStats(filters) {
-    const { startDate, endDate, channel } = filters;
-    
-    let sql = 'SELECT COUNT(*) as total, SUM(total_price) as revenue FROM orders WHERE 1=1';
-    const params = [];
-    
-    if (startDate) {
-      sql += ' AND DATE(check_in) >= ?';
-      params.push(startDate);
+  async exportFinancialReport(startDate, endDate, format = 'excel') {
+    try {
+      const report = this.db.prepare(`
+        SELECT 
+          DATE(created_at) as date,
+          COUNT(*) as total_orders,
+          SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed_orders,
+          SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled_orders,
+          SUM(CASE WHEN payment_status = 'paid' THEN total_price ELSE 0 END) as revenue,
+          SUM(CASE WHEN payment_status = 'pending' THEN total_price ELSE 0 END) as pending_amount
+        FROM orders
+        WHERE DATE(created_at) BETWEEN ? AND ?
+        GROUP BY DATE(created_at)
+        ORDER BY date DESC
+      `).all(startDate, endDate);
+
+      if (format === 'excel') {
+        return await this._generateExcel(report, 'financial_report', [
+          { header: '日期', key: 'date', width: 15 },
+          { header: '总订单数', key: 'total_orders', width: 12 },
+          { header: '已确认', key: 'confirmed_orders', width: 12 },
+          { header: '已取消', key: 'cancelled_orders', width: 12 },
+          { header: '实收金额', key: 'revenue', width: 15 },
+          { header: '待收金额', key: 'pending_amount', width: 15 }
+        ]);
+      } else {
+        return await this._generateCSV(report, 'financial_report');
+      }
+    } catch (error) {
+      console.error('[Export] Export financial report failed:', error.message);
+      throw error;
     }
-    
-    if (endDate) {
-      sql += ' AND DATE(check_out) <= ?';
-      params.push(endDate);
+  }
+
+  /**
+   * 导出房间入住率报表
+   * @param {string} startDate - 开始日期
+   * @param {string} endDate - 结束日期
+   * @param {string} format - 导出格式
+   */
+  async exportOccupancyReport(startDate, endDate, format = 'excel') {
+    try {
+      // 获取所有房间
+      const rooms = this.db.prepare('SELECT id, room_number FROM rooms').all();
+      const totalRooms = rooms.length;
+
+      // 按日期统计入住率
+      const report = this.db.prepare(`
+        WITH RECURSIVE dates(date) AS (
+          SELECT date(?)
+          UNION ALL
+          SELECT date(date, '+1 day')
+          FROM dates
+          WHERE date < date(?)
+        )
+        SELECT 
+          d.date,
+          COUNT(DISTINCT o.room_id) as occupied_rooms,
+          ROUND(COUNT(DISTINCT o.room_id) * 100.0 / ?, 2) as occupancy_rate
+        FROM dates d
+        LEFT JOIN orders o ON 
+          o.check_in_date <= d.date 
+          AND o.check_out_date > d.date
+          AND o.status IN ('confirmed', 'checked_in')
+        GROUP BY d.date
+        ORDER BY d.date
+      `).all(startDate, endDate, totalRooms);
+
+      if (format === 'excel') {
+        return await this._generateExcel(report, 'occupancy_report', [
+          { header: '日期', key: 'date', width: 15 },
+          { header: '已入住房间数', key: 'occupied_rooms', width: 15 },
+          { header: '入住率(%)', key: 'occupancy_rate', width: 15 }
+        ]);
+      } else {
+        return await this._generateCSV(report, 'occupancy_report');
+      }
+    } catch (error) {
+      console.error('[Export] Export occupancy report failed:', error.message);
+      throw error;
     }
-    
-    if (channel) {
-      sql += ' AND channel = ?';
-      params.push(channel);
+  }
+
+  /**
+   * 导出清洁任务报表
+   * @param {string} startDate - 开始日期
+   * @param {string} endDate - 结束日期
+   * @param {string} format - 导出格式
+   */
+  async exportCleaningReport(startDate, endDate, format = 'excel') {
+    try {
+      const report = this.db.prepare(`
+        SELECT 
+          ct.id,
+          r.room_number,
+          ct.task_type,
+          ct.priority,
+          ct.status,
+          ct.assigned_to,
+          ct.scheduled_time,
+          ct.completed_time,
+          ct.notes,
+          ct.created_at
+        FROM cleaning_tasks ct
+        LEFT JOIN rooms r ON ct.room_id = r.id
+        WHERE DATE(ct.scheduled_time) BETWEEN ? AND ?
+        ORDER BY ct.scheduled_time DESC
+      `).all(startDate, endDate);
+
+      if (format === 'excel') {
+        return await this._generateExcel(report, 'cleaning_report', [
+          { header: '任务ID', key: 'id', width: 10 },
+          { header: '房间号', key: 'room_number', width: 10 },
+          { header: '任务类型', key: 'task_type', width: 12 },
+          { header: '优先级', key: 'priority', width: 10 },
+          { header: '状态', key: 'status', width: 12 },
+          { header: '清洁员', key: 'assigned_to', width: 15 },
+          { header: '计划时间', key: 'scheduled_time', width: 20 },
+          { header: '完成时间', key: 'completed_time', width: 20 },
+          { header: '备注', key: 'notes', width: 30 },
+          { header: '创建时间', key: 'created_at', width: 20 }
+        ]);
+      } else {
+        return await this._generateCSV(report, 'cleaning_report');
+      }
+    } catch (error) {
+      console.error('[Export] Export cleaning report failed:', error.message);
+      throw error;
     }
-    
-    const stats = db.prepare(sql).get(...params);
-    
+  }
+
+  /**
+   * 生成Excel文件
+   * @private
+   */
+  async _generateExcel(data, filename, columns) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+
+    // 设置列
+    worksheet.columns = columns;
+
+    // 添加数据
+    worksheet.addRows(data);
+
+    // 样式设置
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    // 生成文件
+    const filepath = path.join(this.exportDir, `${filename}_${Date.now()}.xlsx`);
+    await workbook.xlsx.writeFile(filepath);
+
     return {
-      '总订单数': stats.total,
-      '总营收': stats.revenue || 0,
-      '导出时间': dayjs().format('YYYY-MM-DD HH:mm:ss')
+      success: true,
+      filepath,
+      filename: path.basename(filepath),
+      rows: data.length
     };
   }
-  
+
   /**
-   * 获取财务汇总
+   * 生成CSV文件
+   * @private
    */
-  static getFinanceSummary(year, month) {
-    const income = db.prepare(`
-      SELECT COALESCE(SUM(amount), 0) as total
-      FROM financial_records
-      WHERE type = 'income'
-        AND strftime('%Y', date) = ?
-        AND strftime('%m', date) = ?
-    `).get(String(year), String(month).padStart(2, '0'));
-    
-    const expense = db.prepare(`
-      SELECT COALESCE(SUM(amount), 0) as total
-      FROM financial_records
-      WHERE type = 'expense'
-        AND strftime('%Y', date) = ?
-        AND strftime('%m', date) = ?
-    `).get(String(year), String(month).padStart(2, '0'));
-    
+  async _generateCSV(data, filename) {
+    if (data.length === 0) {
+      throw new Error('No data to export');
+    }
+
+    // 获取列名
+    const headers = Object.keys(data[0]);
+
+    // 生成CSV内容
+    let csv = headers.join(',') + '\n';
+    data.forEach(row => {
+      const values = headers.map(header => {
+        const value = row[header];
+        // 处理包含逗号的值
+        if (typeof value === 'string' && value.includes(',')) {
+          return `"${value}"`;
+        }
+        return value ?? '';
+      });
+      csv += values.join(',') + '\n';
+    });
+
+    // 写入文件
+    const filepath = path.join(this.exportDir, `${filename}_${Date.now()}.csv`);
+    fs.writeFileSync(filepath, csv, 'utf8');
+
     return {
-      '年月': `${year}-${String(month).padStart(2, '0')}`,
-      '总收入': income.total,
-      '总支出': expense.total,
-      '净利润': income.total - expense.total,
-      '导出时间': dayjs().format('YYYY-MM-DD HH:mm:ss')
+      success: true,
+      filepath,
+      filename: path.basename(filepath),
+      rows: data.length
     };
+  }
+
+  /**
+   * 获取导出文件列表
+   */
+  listExportFiles() {
+    try {
+      const files = fs.readdirSync(this.exportDir);
+      return files.map(filename => {
+        const filepath = path.join(this.exportDir, filename);
+        const stats = fs.statSync(filepath);
+        return {
+          filename,
+          filepath,
+          size: stats.size,
+          createdAt: stats.birthtime
+        };
+      });
+    } catch (error) {
+      console.error('[Export] List export files failed:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 删除导出文件
+   */
+  deleteExportFile(filename) {
+    try {
+      const filepath = path.join(this.exportDir, filename);
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+        return { success: true };
+      } else {
+        throw new Error('File not found');
+      }
+    } catch (error) {
+      console.error('[Export] Delete export file failed:', error.message);
+      throw error;
+    }
   }
 }
 

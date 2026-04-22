@@ -32,6 +32,10 @@ const { wsService, notifyAdmins } = require('./services/WebSocketService');
 
 // 路由
 const authRoutes = require('./routes/auth');
+const otaRoutes = require('./routes/ota');
+const pricingRoutes = require('./routes/pricing');
+const exportRoutes = require('./routes/export');
+const bulkRoutes = require('./routes/bulk');
 
 const app = express();
 const PORT = process.env.PORT || 3101;
@@ -98,6 +102,14 @@ app.get('/metrics', asyncHandler(async (req, res) => {
  * 认证路由
  */
 app.use('/api/auth', authRoutes);
+
+/**
+ * Phase 2 高级功能路由
+ */
+app.use('/api/ota', otaRoutes);           // OTA渠道对接
+app.use('/api/pricing', pricingRoutes);   // 智能定价
+app.use('/api/export', exportRoutes);     // 数据导出
+app.use('/api/bulk', bulkRoutes);         // 批量操作
 
 // ============ 需要认证的API ============
 
