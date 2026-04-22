@@ -16,6 +16,13 @@ const { initDatabase } = require('./database');
 const { requestLogger } = require('./middleware/logger');
 const { errorHandler, notFoundHandler, asyncHandler } = require('./middleware/errorHandler');
 const { validators } = require('./middleware/validator');
+const { authMiddleware, authorize } = require('./middleware/auth');
+
+// 路由
+const authRoutes = require('./routes/auth');
+
+// 加载环境变量
+require('dotenv').config();
 
 // 服务层
 const OrderService = require('./services/OrderService');
@@ -50,6 +57,11 @@ app.use((req, res, next) => {
 initDatabase();
 
 // ============ API 路由 ============
+
+/**
+ * 认证路由 (公开访问)
+ */
+app.use('/api/auth', authRoutes);
 
 /**
  * 健康检查
@@ -110,8 +122,9 @@ app.get('/api/orders/:id', asyncHandler(async (req, res) => {
 
 /**
  * 订单管理 - 创建订单
+ * 需要认证: MANAGER/ADMIN
  */
-app.post('/api/orders', asyncHandler(async (req, res) => {
+app.post('/api/orders', authMiddleware, authorize('orders.create'), asyncHandler(async (req, res) => {
   const result = OrderService.createOrder(req.body);
   
   res.json({
@@ -123,8 +136,9 @@ app.post('/api/orders', asyncHandler(async (req, res) => {
 
 /**
  * 订单管理 - 更新状态
+ * 需要认证: MANAGER/ADMIN
  */
-app.put('/api/orders/:id/status', asyncHandler(async (req, res) => {
+app.put('/api/orders/:id/status', authMiddleware, authorize('orders.update'), asyncHandler(async (req, res) => {
   const { status } = req.body;
   const result = OrderService.updateOrderStatus(req.params.id, status);
   
@@ -308,8 +322,9 @@ app.get('/api/cleaning/tasks', asyncHandler(async (req, res) => {
 
 /**
  * 清洁任务 - 创建
+ * 需要认证: MANAGER/ADMIN
  */
-app.post('/api/cleaning/tasks', asyncHandler(async (req, res) => {
+app.post('/api/cleaning/tasks', authMiddleware, authorize('cleaning.create'), asyncHandler(async (req, res) => {
   const { db } = require('./database');
   const { roomId, assignedTo, scheduledTime, notes } = req.body;
   
@@ -327,8 +342,9 @@ app.post('/api/cleaning/tasks', asyncHandler(async (req, res) => {
 
 /**
  * 清洁任务 - 更新状态
+ * 需要认证: CLEANER/STAFF/MANAGER/ADMIN
  */
-app.put('/api/cleaning/tasks/:id', asyncHandler(async (req, res) => {
+app.put('/api/cleaning/tasks/:id', authMiddleware, authorize('cleaning.update'), asyncHandler(async (req, res) => {
   const { db } = require('./database');
   const dayjs = require('dayjs');
   const { id } = req.params;
